@@ -1,0 +1,51 @@
+
+body {
+	min-width: 576px;
+	min-height: 512px;
+	background-color: #888;
+}
+
+#content {
+	width: 576px;
+}
+
+.tab {
+	width: 168px;
+	height: 168px;
+	margin: 8px;
+	padding: 4px;
+	background-color: #fff;
+	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+	display: inline-block;
+	float: left;
+}
+
+.tab_title {
+	max-width: 168px;
+	width: 168px;
+	height: 18px;
+	margin-bottom: 4px;
+	white-space: wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-text-overflow: ellipsis;
+}
+
+.tab_favicon {
+	width: 18px;
+	height: 18px;
+	margin-right: 4px;
+	background-color: #dddddd;
+}
+
+.tab_title_span {
+	height: 18px;
+	font-family: sans-serif;
+	vertical-align: bottom;
+}
+
+.tab_thumbnail {
+	width: 168px;
+	height: 146px;
+	background-color: #dddddd;
+}
