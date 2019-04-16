@@ -20,6 +20,7 @@ body {
 	padding: 4px;
 	background-color: #fff;
 	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+	position: relative;
 	display: inline-block;
 	float: left;
 }
@@ -51,4 +52,14 @@ body {
 	width: 168px;
 	height: 146px;
 	background-color: #dddddd;
+}
+
+.selection {
+	left: 0px;
+	top: 0px;
+	width: 176px;
+	height: 176px;
+	position: absolute;
+	z-index: 1;
+	background-color: #00000060;
 }
