@@ -1,19 +1,17 @@
 
 var tabImages = new Array();
 
-chrome.tabs.onCreated.addListener(function(info) {
+chrome.tabs.onActivated.addListener(function(info) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
-			console.log(imageUrl);
 			tabImages[info.tabId] = imageUrl;
 		});
 	});
 });
 
-chrome.tabs.onActivated.addListener(function(info) {
+chrome.tabs.onUpdated.addListener(function(info) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
-			console.log(imageUrl);
 			tabImages[info.tabId] = imageUrl;
 		});
 	});
@@ -22,7 +20,6 @@ chrome.tabs.onActivated.addListener(function(info) {
 chrome.tabs.onRemoved.addListener(function(info) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
-			console.log(imageUrl);
 			delete tabImages[info.tabId];
 		});
 	});
@@ -30,10 +27,22 @@ chrome.tabs.onRemoved.addListener(function(info) {
 
 chrome.extension.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		if (request == "tabImages") {
-			console.dir(tabImages);
+		if (request == "requestTabImages") {
 			sendResponse({farewell: tabImages});
+		} else if (request == "updateCurrentTab") {
+			updateCurrentTab();
+			sendResponse(undefined);
 		} else {
 			sendResponse(undefined);
 		}
 	});
+
+function updateCurrentTab() {
+	chrome.windows.getCurrent(null, function(aWindow) {
+		chrome.tabs.getSelected(aWindow.id, function(tab) {
+			chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
+				tabImages[tab.id] = imageUrl;
+			});
+		});
+	});
+}
