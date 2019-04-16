@@ -9,6 +9,10 @@ body {
 	width: 576px;
 }
 
+#tab_template_container {
+	display: none
+}
+
 .tab {
 	width: 168px;
 	height: 168px;
@@ -32,10 +36,9 @@ body {
 }
 
 .tab_favicon {
-	width: 18px;
-	height: 18px;
+	width: 16px;
+	height: 16px;
 	margin-right: 4px;
-	background-color: #dddddd;
 }
 
 .tab_title_span {

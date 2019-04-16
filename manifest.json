@@ -22,8 +22,10 @@
 		"windows",
 		"tabs",
 		"contextMenus",
+		"activeTab",
 		"http://*/*",
-		"https://*/*"
+		"https://*/*",
+		"<all_urls>"
 	],
 	"browser_action": {
 		"default_icon": "tps_16.png",
