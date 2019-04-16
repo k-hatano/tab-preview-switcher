@@ -30,7 +30,7 @@ body {
 	width: 168px;
 	height: 18px;
 	margin-bottom: 4px;
-	white-space: wrap;
+	white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     -webkit-text-overflow: ellipsis;
