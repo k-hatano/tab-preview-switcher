@@ -28,7 +28,7 @@ chrome.tabs.onRemoved.addListener(function(info) {
 chrome.extension.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		if (request == "requestTabImages") {
-			sendResponse({farewell: tabImages});
+			sendResponse({tabs: tabImages});
 		} else if (request == "updateCurrentTab") {
 			updateCurrentTab();
 			sendResponse(undefined);
@@ -42,6 +42,7 @@ function updateCurrentTab() {
 		chrome.tabs.getSelected(aWindow.id, function(tab) {
 			chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
 				tabImages[tab.id] = imageUrl;
+				chrome.extension.sendMessage("tabImageUpdated", function(response) { });
 			});
 		});
 	});

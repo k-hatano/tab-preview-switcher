@@ -25,6 +25,10 @@ body {
 	float: left;
 }
 
+.tab_fixed {
+	background-color: #ddd;
+}
+
 .tab_title {
 	max-width: 168px;
 	width: 168px;
