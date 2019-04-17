@@ -9,6 +9,8 @@ window.onload = function() {
 
 				var newTabs = new Array();
 
+				var selectedIndex = 0;
+
 				for (var i = 0; i < tabs.length; i++) {
 					var tabElement = template.cloneNode(true);
 					tabElement.getElementsByClassName('tab_favicon')[0].setAttribute('src', tabs[i].favIconUrl);
@@ -18,6 +20,8 @@ window.onload = function() {
 					tabElement.removeAttribute('id');
 					if (tabs[i].selected == false) {
 						tabElement.getElementsByClassName('selection')[0].removeAttribute('class');
+					} else {
+						selectedIndex = i;
 					}
 					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('id', 'pin_' + tabs[i].id);
 					if (tabs[i].pinned == false) {
@@ -39,6 +43,7 @@ window.onload = function() {
 				}
 
 				requestTabImages(true);
+				window.scrollTo(0, 512 * (selectedIndex / tabs.length) - 88);
 			});
 		});	
 	});
