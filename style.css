@@ -58,6 +58,15 @@ body {
 	background-color: #dddddd;
 }
 
+.tab_pin {
+	width: 24px;
+	height: 24px;
+	left: 76px;
+	top: -12px;
+	position: absolute;
+	z-index: 2;
+}
+
 .selection {
 	left: 0px;
 	top: 0px;
@@ -66,4 +75,8 @@ body {
 	position: absolute;
 	z-index: 1;
 	background-color: #00000060;
+}
+
+.hidden {
+	display: none;
 }

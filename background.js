@@ -1,9 +1,10 @@
 
 var tabImages = new Array();
+var jpegQuality = 16;
 
 chrome.tabs.onActivated.addListener(function(info) {
 	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
+		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg', quality: jpegQuality}, function(imageUrl) {
 			tabImages[info.tabId] = imageUrl;
 		});
 	});
@@ -11,7 +12,7 @@ chrome.tabs.onActivated.addListener(function(info) {
 
 chrome.tabs.onUpdated.addListener(function(info) {
 	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
+		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg', quality: jpegQuality}, function(imageUrl) {
 			tabImages[info.tabId] = imageUrl;
 		});
 	});
@@ -19,7 +20,7 @@ chrome.tabs.onUpdated.addListener(function(info) {
 
 chrome.tabs.onRemoved.addListener(function(info) {
 	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
+		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg', quality: jpegQuality}, function(imageUrl) {
 			delete tabImages[info.tabId];
 		});
 	});
@@ -40,7 +41,7 @@ chrome.extension.onMessage.addListener(
 function updateCurrentTab() {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.getSelected(aWindow.id, function(tab) {
-			chrome.tabs.captureVisibleTab(aWindow.id, null, function(imageUrl) {
+			chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg', quality: jpegQuality}, function(imageUrl) {
 				tabImages[tab.id] = imageUrl;
 				chrome.extension.sendMessage("tabImageUpdated", function(response) { });
 			});
