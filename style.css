@@ -25,6 +25,10 @@ body {
 	float: left;
 }
 
+.new_tab {
+	background-color: #ffff;
+}
+
 .tab_fixed {
 	background-color: #ddd;
 }
@@ -75,15 +79,23 @@ body {
 .tab_cover {
 	left: 0px;
 	top: 0px;
+	bottom: 0px;
+	right: 0px;
 	width: 176px;
 	height: 176px;
 	position: absolute;
 	z-index: 1;
 	background-color: transparent;
+	line-height: 176px;
+	font-size: 4em;
+	color: #aaa;
+	text-align: center;
+	vertical-align: middle;
+   	user-select: none;
 }
 
 .selected {
-	background-color: #00000060;
+	background-color: #0006;
 }
 
 .hidden {

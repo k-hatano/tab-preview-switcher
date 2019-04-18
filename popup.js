@@ -7,8 +7,6 @@ window.onload = function() {
 			chrome.tabs.getAllInWindow(aWindow.id, function(tabs){
 				var template = document.getElementById('tab_template');
 
-				var newTabs = new Array();
-
 				var selectedIndex = 0;
 
 				for (var i = 0; i < tabs.length; i++) {
@@ -28,9 +26,17 @@ window.onload = function() {
 						tabElement.getElementsByClassName('tab_pin')[0].setAttribute('class', 'tab_pin hidden');
 					}
 					document.getElementById('content').innerHTML += tabElement.outerHTML;
-
-					newTabs.push(tabs[i].id);
 				}
+
+				var newTabElement = template.cloneNode(true);
+				newTabElement.setAttribute('class','tab new_tab');
+				newTabElement.getElementsByClassName('tab_favicon')[0].setAttribute('class', 'tab_favicon hidden');
+				newTabElement.getElementsByClassName('tab_thumbnail')[0].setAttribute('class', 'tab_thumbnail hidden');
+				newTabElement.getElementsByClassName('tab_title_span')[0].setAttribute('class', 'tab_title_span hidden');
+				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('id', 'cover_new');
+				newTabElement.getElementsByClassName('tab_cover')[0].innerText = '+';
+				newTabElement.removeAttribute('id');
+				document.getElementById('content').innerHTML += newTabElement.outerHTML;
 
 				for (var i = 0; i < tabs.length; i++) {
 					if (document.getElementById('cover_' + tabs[i].id) != null) {
@@ -41,6 +47,7 @@ window.onload = function() {
 						drawPin(document.getElementById('pin_' + tabs[i].id), tabs[i].selected);
 					}
 				}
+				document.getElementById('cover_new').addEventListener('click', newTabClicked);
 
 				requestTabImages(true);
 				window.scrollTo(0, 512 * (selectedIndex / tabs.length) - 88);
@@ -83,16 +90,17 @@ chrome.extension.onMessage.addListener(
 	});
 
 function tabClicked(event) {
-	console.log('clicked');
 	var tabId = parseInt((event.target.id).replace('cover_', ''));
 	chrome.tabs.update(tabId, {active: true}, function(ignore){});
+}
+
+function newTabClicked(event) {
+	chrome.tabs.create({active: true}, function(ignore){});
 }
 
 function drawPin(target, selected) {
 	var width = 24;
 	var height = 24;
-
-	console.dir(target);
 
 	var ctx = target.getContext('2d');
     ctx.clearRect(0, 0, width, height);
