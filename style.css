@@ -14,10 +14,10 @@ body {
 }
 
 .tab {
-	width: 168px;
-	height: 168px;
+	width: 176px;
+	height: 176px;
 	margin: 8px;
-	padding: 4px;
+	padding: 0px;
 	background-color: #fff;
 	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
 	position: relative;
@@ -33,7 +33,7 @@ body {
 	max-width: 168px;
 	width: 168px;
 	height: 18px;
-	margin-bottom: 4px;
+	margin: 4px;
 	white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -48,13 +48,16 @@ body {
 
 .tab_title_span {
 	height: 18px;
+	margin-right: 4px;
 	font-family: sans-serif;
 	vertical-align: bottom;
+	position: relative;
+    z-index: 3;
 }
 
 .tab_thumbnail {
-	width: 168px;
-	height: 146px;
+	width: 176px;
+	height: 150px;
 	background-color: #dddddd;
 	object-fit: cover;
 	object-position: 0% 0%;
@@ -69,13 +72,17 @@ body {
 	z-index: 2;
 }
 
-.selection {
+.tab_cover {
 	left: 0px;
 	top: 0px;
 	width: 176px;
 	height: 176px;
 	position: absolute;
 	z-index: 1;
+	background-color: transparent;
+}
+
+.selected {
 	background-color: #00000060;
 }
 

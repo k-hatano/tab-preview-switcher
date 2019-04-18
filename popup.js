@@ -18,9 +18,9 @@ window.onload = function() {
 					tabElement.getElementsByClassName('tab_title_span')[0].innerText = tabs[i].title;
 					tabElement.getElementsByClassName('tab_title_span')[0].setAttribute('title', tabs[i].title + "\n" + tabs[i].url);
 					tabElement.removeAttribute('id');
-					if (tabs[i].selected == false) {
-						tabElement.getElementsByClassName('selection')[0].removeAttribute('class');
-					} else {
+					tabElement.getElementsByClassName('tab_cover')[0].setAttribute('id', 'cover_' + tabs[i].id);
+					if (tabs[i].selected) {
+						tabElement.getElementsByClassName('tab_cover')[0].setAttribute('class', 'tab_cover selected');
 						selectedIndex = i;
 					}
 					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('id', 'pin_' + tabs[i].id);
@@ -33,8 +33,8 @@ window.onload = function() {
 				}
 
 				for (var i = 0; i < tabs.length; i++) {
-					if (document.getElementById('thumbnail_' + tabs[i].id) != null) {
-						document.getElementById('thumbnail_' + tabs[i].id).addEventListener('click', tabClicked);
+					if (document.getElementById('cover_' + tabs[i].id) != null) {
+						document.getElementById('cover_' + tabs[i].id).addEventListener('click', tabClicked);
 					}
 
 					if (document.getElementById('pin_' + tabs[i].id) != null) {
@@ -62,7 +62,7 @@ function requestTabImages(override) {
 					continue;
 				}
 
-				if (value != null && value instanceof String && value != 'null') {
+				if (value != undefined && value instanceof String && value != 'null' && value != 'undefined') {
 					element.setAttribute('src', value);
 				} else {
 					element.removeAttribute('src');
@@ -84,7 +84,7 @@ chrome.extension.onMessage.addListener(
 
 function tabClicked(event) {
 	console.log('clicked');
-	var tabId = parseInt((event.target.id).replace('thumbnail_', ''));
+	var tabId = parseInt((event.target.id).replace('cover_', ''));
 	chrome.tabs.update(tabId, {active: true}, function(ignore){});
 }
 
