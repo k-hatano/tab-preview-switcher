@@ -5,7 +5,7 @@
 	"description": "Tab Preview Switcher",
      "background": {
         "scripts": ["background.js"],
-    	"persistent": false
+    	"persistent": true
      },
 	"icons": {
 		"16": "tps_16.png",
