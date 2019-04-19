@@ -69,7 +69,8 @@ function requestTabImages(override) {
 					continue;
 				}
 
-				if (value != undefined && value instanceof String && value != 'null' && value != 'undefined') {
+				if (value != undefined && value instanceof String && 
+						value != 'null' && value != 'undefined' && value != '') {
 					element.setAttribute('src', value);
 				} else {
 					element.removeAttribute('src');
