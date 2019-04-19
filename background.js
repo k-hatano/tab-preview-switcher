@@ -5,7 +5,9 @@ var jpegQuality = 20;
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
-			tabImages[activatedTabInfo.tabId] = new String(compressImage(imageUrl));
+			compressImage(imageUrl, function (newImageUrl){
+				tabImages[activatedTabInfo.tabId] = newImageUrl;
+			});
 		});
 	});
 });
@@ -13,7 +15,9 @@ chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 chrome.tabs.onUpdated.addListener(function(updatedTabInfo) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
-			tabImages[updatedTabInfo.tabId] = new String(compressImage(imageUrl));
+			compressImage(imageUrl, function (newImageUrl){
+				tabImages[updatedTabInfo.tabId] = newImageUrl;
+			});
 		});
 	});
 });
