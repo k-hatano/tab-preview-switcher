@@ -9,6 +9,13 @@ body {
 	width: 576px;
 }
 
+#bottom_padding {
+	width: 576px;
+	height: 8px;
+	background-color: transparent;
+	float: left;
+}
+
 #tab_template_container {
 	display: none
 }
