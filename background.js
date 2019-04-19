@@ -6,7 +6,7 @@ chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 			compressImage(imageUrl, function (newImageUrl){
-				tabImages[activatedTabInfo.tabId] = newImageUrl;
+				tabImages[activatedTabInfo.tabId] = new String(newImageUrl);
 			});
 		});
 	});
@@ -16,7 +16,7 @@ chrome.tabs.onUpdated.addListener(function(updatedTabInfo) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 			compressImage(imageUrl, function (newImageUrl){
-				tabImages[updatedTabInfo.tabId] = newImageUrl;
+				tabImages[updatedTabInfo.tabId] = new String(newImageUrl);
 			});
 		});
 	});
@@ -43,7 +43,7 @@ function updateCurrentTab() {
 		chrome.tabs.getSelected(aWindow.id, function(selectedTab) {
 			chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 				compressImage(imageUrl, function (newImageUrl){
-					tabImages[selectedTab.id] = newImageUrl;
+					tabImages[selectedTab.id] = new String(newImageUrl);
 					chrome.extension.sendMessage("tabImageUpdated", function(response) { });
 				});
 			});
