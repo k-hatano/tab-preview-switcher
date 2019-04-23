@@ -1,6 +1,6 @@
 
 var tabImages = new Array();
-var jpegQuality = 20;
+var jpegQuality = 32;
 
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	chrome.windows.getCurrent(null, function(aWindow) {
