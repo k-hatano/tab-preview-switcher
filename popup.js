@@ -35,6 +35,7 @@ window.onload = function() {
 				newTabElement.getElementsByClassName('tab_title_span')[0].setAttribute('class', 'tab_title_span hidden');
 				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('id', 'cover_new');
 				newTabElement.getElementsByClassName('tab_cover')[0].innerText = '+';
+				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('title', 'New Tab');
 				newTabElement.removeAttribute('id');
 				document.getElementById('content').innerHTML += newTabElement.outerHTML;
 
