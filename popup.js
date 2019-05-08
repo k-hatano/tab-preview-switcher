@@ -22,6 +22,7 @@ window.onload = function() {
 						selectedIndex = i;
 					}
 					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('id', 'pin_' + tabs[i].id);
+					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('title', 'Pinned Tab');
 					if (tabs[i].pinned == false) {
 						tabElement.getElementsByClassName('tab_pin')[0].setAttribute('class', 'tab_pin hidden');
 					}
