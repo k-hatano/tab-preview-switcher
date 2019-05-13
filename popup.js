@@ -52,7 +52,7 @@ window.onload = function() {
 				document.getElementById('cover_new').addEventListener('click', newTabClicked);
 
 				requestTabImages(true);
-				window.scrollTo(0, 512 * (selectedIndex / tabs.length) - 88);
+				window.scrollTo(0, 192 * Math.floor(selectedIndex / 3) - 192);
 			});
 		});	
 	});
