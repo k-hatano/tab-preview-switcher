@@ -1,15 +1,18 @@
 {
 	"manifest_version": 2,
 	"name": "Tab Preview Switcher",
-	"version": "1.0",
-	"description": "Tab Preview Switcher",
+	"version": "1.0.1",
+	"description": "You can switch tabs with seeing their previews",
      "background": {
         "scripts": ["background.js"],
     	"persistent": true
      },
 	"icons": {
 		"16": "tps_16.png",
-		"32": "tps_32.png"
+		"32": "tps_32.png",
+		"64": "tps_64.png",
+		"96": "tps_96.png",
+		"128": "tps_128.png"
 	},
 	"content_scripts": [
 		{
