@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "Tab Preview Switcher"
+  },
+  "appDescription": {
+    "message": "プレビューを見ながらタブを切り替えることができます。"
+  },
+  "newTab": {
+    "message": "新しいタブ"
+  },
+  "pinnedTab": {
+    "message": "固定されたタブ"
+  }
+}

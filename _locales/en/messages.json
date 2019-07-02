@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "Tab Preview Switcher"
+  },
+  "appDescription": {
+    "message": "You can switch tabs with seeing their previews"
+  },
+  "newTab": {
+    "message": "New Tab"
+  },
+  "pinnedTab": {
+    "message": "Pinned Tab"
+  }
+}

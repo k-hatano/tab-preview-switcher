@@ -22,7 +22,7 @@ window.onload = function() {
 						selectedIndex = i;
 					}
 					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('id', 'pin_' + tabs[i].id);
-					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('title', 'Pinned Tab');
+					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 					if (tabs[i].pinned == false) {
 						tabElement.getElementsByClassName('tab_pin')[0].setAttribute('class', 'tab_pin hidden');
 					}
@@ -36,7 +36,7 @@ window.onload = function() {
 				newTabElement.getElementsByClassName('tab_title_span')[0].setAttribute('class', 'tab_title_span hidden');
 				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('id', 'cover_new');
 				newTabElement.getElementsByClassName('tab_cover')[0].innerText = '+';
-				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('title', 'New Tab');
+				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('title', chrome.i18n.getMessage("newTab"));
 				newTabElement.removeAttribute('id');
 				document.getElementById('content').innerHTML += newTabElement.outerHTML;
 
