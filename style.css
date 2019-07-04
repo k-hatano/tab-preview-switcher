@@ -108,3 +108,24 @@ body {
 .hidden {
 	display: none;
 }
+
+#separator {
+	width: 576px;
+	text-align: center;
+	float: left;
+}
+
+#separator .separator_bar {
+	width: 544px;
+	text-align: center;
+	margin: 16px 16px 8px 16px;
+	background-color: #888;
+	height: 0px;
+}
+
+#separator .separator_other_windows {
+	text-align: center;
+	font-size: 1.5em;
+	color: #444;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}

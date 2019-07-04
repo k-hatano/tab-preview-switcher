@@ -56,6 +56,8 @@ window.onload = function() {
 			});
 		});	
 	});
+
+	localizeMessages();
 };
 
 function requestTabImages(override) {
@@ -80,6 +82,14 @@ function requestTabImages(override) {
 			}
 		}
 	});
+}
+
+function localizeMessages() {
+	var localizables = Array.from(document.getElementsByClassName('localizable'));
+
+	localizables.forEach(anElement => {
+		anElement.innerText = chrome.i18n.getMessage(anElement.innerText);
+	})
 }
 
 chrome.extension.onMessage.addListener(

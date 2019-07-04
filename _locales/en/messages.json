@@ -10,5 +10,8 @@
   },
   "pinnedTab": {
     "message": "Pinned Tab"
+  },
+  "otherWindows": {
+    "message": "Other Windows"
   }
 }
