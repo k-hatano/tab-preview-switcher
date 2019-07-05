@@ -126,6 +126,6 @@ body {
 #separator .separator_other_windows {
 	text-align: center;
 	font-size: 1.5em;
-	color: #444;
+	color: #ddd;
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 }

@@ -1,29 +1,35 @@
 
-var tabImages = new Array();
+var tabImages = {};
 var jpegQuality = 32;
 
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
-	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
-			compressImage(imageUrl, function (newImageUrl){
-				tabImages[activatedTabInfo.tabId] = new String(newImageUrl);
-			});
+	chrome.tabs.captureVisibleTab(activatedTabInfo.windowId, {format: 'jpeg'}, function(imageUrl) {
+		compressImage(imageUrl, function (newImageUrl){
+			if (tabImages[activatedTabInfo.windowId] == undefined) {
+				tabImages[activatedTabInfo.windowId] = {};
+			}
+			tabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(newImageUrl);
 		});
 	});
 });
 
-chrome.tabs.onUpdated.addListener(function(updatedTabInfo) {
+chrome.tabs.onUpdated.addListener(function(updatedTabId) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 			compressImage(imageUrl, function (newImageUrl){
-				tabImages[updatedTabInfo.tabId] = new String(newImageUrl);
+				if (tabImages[aWindow.id] == undefined) {
+					tabImages[aWindow.id] = {};
+				}
+				tabImages[aWindow.id][updatedTabId] = new String(newImageUrl);
 			});
 		});
 	});
 });
 
 chrome.tabs.onRemoved.addListener(function(removedTabId) {
-	delete tabImages[removedTabId.tabId];
+	chrome.windows.getCurrent(null, function(aWindow) {
+		delete tabImages[aWindow.id][removedTabId];
+	});
 });
 
 chrome.extension.onMessage.addListener(
@@ -43,7 +49,10 @@ function updateCurrentTab() {
 		chrome.tabs.getSelected(aWindow.id, function(selectedTab) {
 			chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 				compressImage(imageUrl, function (newImageUrl){
-					tabImages[selectedTab.id] = new String(newImageUrl);
+					if (tabImages[selectedTab.windowId] == undefined) {
+						tabImages[selectedTab.windowId] = {};
+					}
+					tabImages[selectedTab.windowId][selectedTab.id] = new String(newImageUrl);
 					chrome.extension.sendMessage("tabImageUpdated", function(response) { });
 				});
 			});

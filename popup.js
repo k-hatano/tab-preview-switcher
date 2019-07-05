@@ -3,56 +3,69 @@ window.onload = function() {
 	document.getElementById('content').innerHTML = '';
 
 	chrome.extension.sendMessage("updateCurrentTab", function(response) {
-		chrome.windows.getCurrent(null, function(aWindow) {
-			chrome.tabs.getAllInWindow(aWindow.id, function(tabs){
-				var template = document.getElementById('tab_template');
+		chrome.windows.getCurrent(null, function(currentWindow) {
+			chrome.windows.getAll(null, function(allWindows) {
+				for (var w = 0; w < allWindows.length; w++) {
+					var aWindow = allWindows[w];
+					chrome.tabs.getAllInWindow(aWindow.id, function(tabs){
+						var template = document.getElementById('tab_template');
 
-				var selectedIndex = 0;
+						var selectedIndex = 0;
 
-				for (var i = 0; i < tabs.length; i++) {
-					var tabElement = template.cloneNode(true);
-					tabElement.getElementsByClassName('tab_favicon')[0].setAttribute('src', tabs[i].favIconUrl);
-					tabElement.getElementsByClassName('tab_thumbnail')[0].setAttribute('id', 'thumbnail_' + tabs[i].id);
-					tabElement.getElementsByClassName('tab_title_span')[0].innerText = tabs[i].title;
-					tabElement.getElementsByClassName('tab_title_span')[0].setAttribute('title', tabs[i].title + "\n" + tabs[i].url);
-					tabElement.removeAttribute('id');
-					tabElement.getElementsByClassName('tab_cover')[0].setAttribute('id', 'cover_' + tabs[i].id);
-					if (tabs[i].selected) {
-						tabElement.getElementsByClassName('tab_cover')[0].setAttribute('class', 'tab_cover selected');
-						selectedIndex = i;
-					}
-					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('id', 'pin_' + tabs[i].id);
-					tabElement.getElementsByClassName('tab_pin')[0].setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
-					if (tabs[i].pinned == false) {
-						tabElement.getElementsByClassName('tab_pin')[0].setAttribute('class', 'tab_pin hidden');
-					}
-					document.getElementById('content').innerHTML += tabElement.outerHTML;
+						for (var i = 0; i < tabs.length; i++) {
+							var tabElement = template.cloneNode(true);
+							getFirstByClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
+							getFirstByClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + tabs[i].windowId + '_' + tabs[i].id);
+							getFirstByClass(tabElement, 'tab_title_span').innerText = tabs[i].title;
+							getFirstByClass(tabElement, 'tab_title_span').setAttribute('title', tabs[i].title + "\n" + tabs[i].url);
+							tabElement.removeAttribute('id');
+							getFirstByClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + tabs[i].windowId + '_' + tabs[i].id);
+							if (tabs[i].windowId == currentWindow.id && tabs[i].selected) {
+								getFirstByClass(tabElement, 'tab_cover').setAttribute('class', 'tab_cover selected');
+								selectedIndex = i;
+							}
+							getFirstByClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + tabs[i].windowId + '_' + tabs[i].id);
+							getFirstByClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
+							if (tabs[i].pinned == false) {
+								getFirstByClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin hidden');
+							}
+							if (tabs[i].windowId == currentWindow.id) {
+								document.getElementById('content').innerHTML += tabElement.outerHTML;
+							} else {
+								document.getElementById('content_others').innerHTML += tabElement.outerHTML;
+							}
+						}
+
+						if (tabs[0].windowId == currentWindow.id) {
+							var newTabElement = template.cloneNode(true);
+							newTabElement.setAttribute('class','tab new_tab');
+							getFirstByClass(newTabElement, 'tab_favicon').setAttribute('class', 'tab_favicon hidden');
+							getFirstByClass(newTabElement, 'tab_thumbnail').setAttribute('class', 'tab_thumbnail hidden');
+							getFirstByClass(newTabElement, 'tab_title_span').setAttribute('class', 'tab_title_span hidden');
+							getFirstByClass(newTabElement, 'tab_cover').setAttribute('id', 'cover_new');
+							getFirstByClass(newTabElement, 'tab_cover').innerText = '+';
+							getFirstByClass(newTabElement, 'tab_cover').setAttribute('title', chrome.i18n.getMessage("newTab"));
+							newTabElement.removeAttribute('id');
+							document.getElementById('content').innerHTML += newTabElement.outerHTML;
+						}
+
+						for (var i = 0; i < tabs.length; i++) {
+							if (document.getElementById('cover_' + tabs[i].windowId + '_' + tabs[i].id) != null) {
+								document.getElementById('cover_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('click', tabClicked);
+							}
+
+							if (document.getElementById('pin_' + tabs[i].windowId + '_' + tabs[i].id) != null) {
+								drawPin(document.getElementById('pin_' + tabs[i].windowId + '_' + tabs[i].id), tabs[i].selected);
+							}
+						}
+						document.getElementById('cover_new').addEventListener('click', newTabClicked);
+
+						requestTabImages(true);
+						if (tabs[i].windowId == currentWindow.id) {
+							window.scrollTo(0, 192 * Math.floor(selectedIndex / 3) - 192);
+						}
+					});
 				}
-
-				var newTabElement = template.cloneNode(true);
-				newTabElement.setAttribute('class','tab new_tab');
-				newTabElement.getElementsByClassName('tab_favicon')[0].setAttribute('class', 'tab_favicon hidden');
-				newTabElement.getElementsByClassName('tab_thumbnail')[0].setAttribute('class', 'tab_thumbnail hidden');
-				newTabElement.getElementsByClassName('tab_title_span')[0].setAttribute('class', 'tab_title_span hidden');
-				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('id', 'cover_new');
-				newTabElement.getElementsByClassName('tab_cover')[0].innerText = '+';
-				newTabElement.getElementsByClassName('tab_cover')[0].setAttribute('title', chrome.i18n.getMessage("newTab"));
-				newTabElement.removeAttribute('id');
-				document.getElementById('content').innerHTML += newTabElement.outerHTML;
-
-				for (var i = 0; i < tabs.length; i++) {
-					if (document.getElementById('cover_' + tabs[i].id) != null) {
-						document.getElementById('cover_' + tabs[i].id).addEventListener('click', tabClicked);
-					}
-
-					if (document.getElementById('pin_' + tabs[i].id) != null) {
-						drawPin(document.getElementById('pin_' + tabs[i].id), tabs[i].selected);
-					}
-				}
-				document.getElementById('cover_new').addEventListener('click', newTabClicked);
-
-				requestTabImages(true);
-				window.scrollTo(0, 192 * Math.floor(selectedIndex / 3) - 192);
 			});
 		});	
 	});
@@ -60,24 +73,31 @@ window.onload = function() {
 	localizeMessages();
 };
 
+function getFirstByClass(elements, className) {
+	return elements.getElementsByClassName(className)[0];
+}
+
 function requestTabImages(override) {
 	chrome.extension.sendMessage("requestTabImages", function(response) {
 		var responseTabs = response.tabs;
-		for (var j = 0; j < Object.keys(responseTabs).length; j++) {
-			var key = Object.keys(responseTabs)[j];
-			var value = new String(Object.values(responseTabs)[j]);
+		for (var k = 0; k < Object.keys(responseTabs).length; k++) {
+			var kKey = Object.keys(responseTabs)[k];
+			var kValue = Object.values(responseTabs)[k];
+			for (var j = 0; j < Object.keys(kValue).length; j++) {
+				var key = Object.keys(kValue)[j];
+				var value = Object.values(kValue)[j];
 
-			if (key != null && document.getElementById('thumbnail_' + key) != null) {
-				var element = document.getElementById('thumbnail_' + key);
-				if (override == false && element.getAttribute('src') != undefined) {
-					continue;
-				}
+				if (kKey != null && key != null && document.getElementById('thumbnail_' + kKey + '_' + key) != null) {
+					var element = document.getElementById('thumbnail_' + kKey + '_' + key);
+					if (override == false && element.getAttribute('src') != undefined) {
+						continue;
+					}
 
-				if (value != undefined && value instanceof String && 
-						value != 'null' && value != 'undefined' && value != '') {
-					element.setAttribute('src', value);
-				} else {
-					element.removeAttribute('src');
+					if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
+						element.setAttribute('src', new String(value));
+					} else {
+						element.removeAttribute('src');
+					}
 				}
 			}
 		}
@@ -103,8 +123,12 @@ chrome.extension.onMessage.addListener(
 	});
 
 function tabClicked(event) {
-	var tabId = parseInt((event.target.id).replace('cover_', ''));
+	var matches = (event.target.id).match(/cover_([0-9]+)_([0-9]+)/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+	chrome.windows.update(windowId, {focused: true}, function(ignore){});
 	chrome.tabs.update(tabId, {active: true}, function(ignore){});
+	window.close();
 }
 
 function newTabClicked(event) {
