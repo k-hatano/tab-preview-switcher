@@ -32,7 +32,8 @@ window.onload = function() {
 							if (tabs[i].windowId == currentWindow.id) {
 								document.getElementById('content').innerHTML += tabElement.outerHTML;
 							} else {
-								document.getElementById('content_others').setAttribute('class', '')
+								document.getElementById('separator').setAttribute('class', '');
+								document.getElementById('content_others').setAttribute('class', '');
 								document.getElementById('content_others').innerHTML += tabElement.outerHTML;
 							}
 						}
