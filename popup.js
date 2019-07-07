@@ -32,6 +32,7 @@ window.onload = function() {
 							if (tabs[i].windowId == currentWindow.id) {
 								document.getElementById('content').innerHTML += tabElement.outerHTML;
 							} else {
+								document.getElementById('content_others').setAttribute('class', '')
 								document.getElementById('content_others').innerHTML += tabElement.outerHTML;
 							}
 						}
@@ -61,7 +62,7 @@ window.onload = function() {
 						document.getElementById('cover_new').addEventListener('click', newTabClicked);
 
 						requestTabImages(true);
-						if (tabs[i].windowId == currentWindow.id) {
+						if (tabs[0].windowId == currentWindow.id) {
 							window.scrollTo(0, 192 * Math.floor(selectedIndex / 3) - 192);
 						}
 					});
