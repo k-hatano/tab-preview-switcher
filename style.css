@@ -105,6 +105,10 @@ body {
 	background-color: #0006;
 }
 
+.highlighted {
+	outline: 4px solid #FF0000;
+}
+
 .hidden {
 	display: none;
 }

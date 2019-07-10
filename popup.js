@@ -1,4 +1,31 @@
 
+var selectedIndex = -1;
+var keyHighlitedIndex = -1;
+
+window.onkeydown = function(event) {
+	if (keyHighlitedIndex == -1) {
+		keyHighlitedIndex = selectedIndex;
+	}
+
+	var tabs = document.getElementById('content_all').getElementsByClassName('tab');
+
+	if (event.keyCode == 37) { // left
+		keyHighlitedIndex--;
+		if (keyHighlitedIndex < 0) {
+			keyHighlitedIndex = tabs.length - 1;
+		}
+		updateTabHighlight();
+  	} else if (event.keyCode == 39) { // right
+  		keyHighlitedIndex++;
+		if (keyHighlitedIndex >= tabs.length) {
+			keyHighlitedIndex = 0;
+		}
+		updateTabHighlight();
+  	} else if (event.keyCode == 32 || event.keyCode == 13) { // space or enter
+
+	}
+};
+
 window.onload = function() {
 	document.getElementById('content').innerHTML = '';
 
@@ -9,8 +36,6 @@ window.onload = function() {
 					var aWindow = allWindows[w];
 					chrome.tabs.getAllInWindow(aWindow.id, function(tabs){
 						var template = document.getElementById('tab_template');
-
-						var selectedIndex = 0;
 
 						for (var i = 0; i < tabs.length; i++) {
 							var tabElement = template.cloneNode(true);
@@ -74,6 +99,19 @@ window.onload = function() {
 
 	localizeMessages();
 };
+
+function updateTabHighlight() {
+	var tabs = document.getElementById('content_all').getElementsByClassName('tab');
+	for (var i = 0; i < tabs.length; i++) {
+		var originalClass = tabs[i].getAttribute('class');
+		if (i == keyHighlitedIndex && originalClass.indexOf("highlighted") < 0) {
+			tabs[i].setAttribute('class', originalClass + ' highlighted');
+			window.scrollTo(0, 192 * Math.floor(i / 3) - 192);
+		} else if (i != keyHighlitedIndex && originalClass.indexOf("highlighted") >= 0) {
+			tabs[i].setAttribute('class', originalClass.replace('highlighted', ''));
+		}
+	}
+}
 
 function getFirstByClass(elements, className) {
 	return elements.getElementsByClassName(className)[0];
