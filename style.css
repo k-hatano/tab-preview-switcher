@@ -115,6 +115,7 @@ body {
 
 #separator {
 	width: 576px;
+	height: 56px;
 	text-align: center;
 	float: left;
 }

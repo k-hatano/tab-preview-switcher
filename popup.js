@@ -1,28 +1,28 @@
 
 var selectedIndex = -1;
-var keyHighlitedIndex = -1;
+var keyHighlightedIndex = -1;
 
 window.onkeydown = function(event) {
-	if (keyHighlitedIndex == -1) {
-		keyHighlitedIndex = selectedIndex;
+	if (keyHighlightedIndex == -1) {
+		keyHighlightedIndex = selectedIndex;
 	}
 
 	var tabs = document.getElementById('content_all').getElementsByClassName('tab');
 
 	if (event.keyCode == 37) { // left
-		keyHighlitedIndex--;
-		if (keyHighlitedIndex < 0) {
-			keyHighlitedIndex = tabs.length - 1;
+		keyHighlightedIndex--;
+		if (keyHighlightedIndex < 0) {
+			keyHighlightedIndex = tabs.length - 1;
 		}
 		updateTabHighlight();
   	} else if (event.keyCode == 39) { // right
-  		keyHighlitedIndex++;
-		if (keyHighlitedIndex >= tabs.length) {
-			keyHighlitedIndex = 0;
+  		keyHighlightedIndex++;
+		if (keyHighlightedIndex >= tabs.length) {
+			keyHighlightedIndex = 0;
 		}
 		updateTabHighlight();
   	} else if (event.keyCode == 32 || event.keyCode == 13) { // space or enter
-
+  		activateHighlightedTab();
 	}
 };
 
@@ -39,6 +39,11 @@ window.onload = function() {
 
 						for (var i = 0; i < tabs.length; i++) {
 							var tabElement = template.cloneNode(true);
+							if (tabs[0].windowId == currentWindow.id) {
+								tabElement.setAttribute('name', 'tab_' + tabs[i].windowId + '_' + tabs[i].id);
+							} else {
+								tabElement.setAttribute('name', 'other_tab_' + tabs[i].windowId + '_' + tabs[i].id);
+							}
 							getFirstByClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
 							getFirstByClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + tabs[i].windowId + '_' + tabs[i].id);
 							getFirstByClass(tabElement, 'tab_title_span').innerText = tabs[i].title;
@@ -66,6 +71,7 @@ window.onload = function() {
 						if (tabs[0].windowId == currentWindow.id) {
 							var newTabElement = template.cloneNode(true);
 							newTabElement.setAttribute('class','tab new_tab');
+							newTabElement.setAttribute('name', 'new_tab');
 							getFirstByClass(newTabElement, 'tab_favicon').setAttribute('class', 'tab_favicon hidden');
 							getFirstByClass(newTabElement, 'tab_thumbnail').setAttribute('class', 'tab_thumbnail hidden');
 							getFirstByClass(newTabElement, 'tab_title_span').setAttribute('class', 'tab_title_span hidden');
@@ -104,12 +110,33 @@ function updateTabHighlight() {
 	var tabs = document.getElementById('content_all').getElementsByClassName('tab');
 	for (var i = 0; i < tabs.length; i++) {
 		var originalClass = tabs[i].getAttribute('class');
-		if (i == keyHighlitedIndex && originalClass.indexOf("highlighted") < 0) {
+		if (i == keyHighlightedIndex && originalClass.indexOf("highlighted") < 0) {
 			tabs[i].setAttribute('class', originalClass + ' highlighted');
-			window.scrollTo(0, 192 * Math.floor(i / 3) - 192);
-		} else if (i != keyHighlitedIndex && originalClass.indexOf("highlighted") >= 0) {
+			if (tabs[i].getAttribute('name').indexOf('other') >= 0) {
+				window.scrollTo(0, 192 * Math.floor(i / 3) - 192 + 56);
+			} else {
+				window.scrollTo(0, 192 * Math.floor(i / 3) - 192);
+			}
+		} else if (i != keyHighlightedIndex && originalClass.indexOf("highlighted") >= 0) {
 			tabs[i].setAttribute('class', originalClass.replace('highlighted', ''));
 		}
+	}
+}
+
+function activateHighlightedTab() {
+	var tabs = document.getElementById('content_all').getElementsByClassName('tab');
+	if (keyHighlightedIndex == -1) {
+		keyHighlightedIndex = selectedIndex;
+	}
+	var highlightedTabName = tabs[keyHighlightedIndex].getAttribute('name');
+	if (highlightedTabName == 'new_tab') {
+		createNewTab();
+	} else {
+		var matches = highlightedTabName.match(/tab_([0-9]+)_([0-9]+)/);
+		var windowId = parseInt(matches[1]);
+		var tabId = parseInt(matches[2]);	
+		activateTab(windowId, tabId);
+		window.close();
 	}
 }
 
@@ -166,12 +193,20 @@ function tabClicked(event) {
 	var matches = (event.target.id).match(/cover_([0-9]+)_([0-9]+)/);
 	var windowId = parseInt(matches[1]);
 	var tabId = parseInt(matches[2]);
-	chrome.windows.update(windowId, {focused: true}, function(ignore){});
-	chrome.tabs.update(tabId, {active: true}, function(ignore){});
+	activateTab(windowId, tabId);
 	window.close();
 }
 
+function activateTab(windowId, tabId) {
+	chrome.windows.update(windowId, {focused: true}, function(ignore){});
+	chrome.tabs.update(tabId, {active: true}, function(ignore){});
+}
+
 function newTabClicked(event) {
+	createNewTab();
+}
+
+function createNewTab() {
 	chrome.tabs.create({active: true}, function(ignore){});
 }
 
