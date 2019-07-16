@@ -3,6 +3,7 @@ var selectedIndex = -1;
 var keyHighlightedIndex = -1;
 
 window.onkeydown = function(event) {
+	var originalKeyHighlightedIndex = keyHighlightedIndex;
 	if (keyHighlightedIndex == -1) {
 		keyHighlightedIndex = selectedIndex;
 	}
@@ -15,14 +16,31 @@ window.onkeydown = function(event) {
 			keyHighlightedIndex = tabs.length - 1;
 		}
 		updateTabHighlight();
+		event.preventDefault();
   	} else if (event.keyCode == 39) { // right
   		keyHighlightedIndex++;
 		if (keyHighlightedIndex >= tabs.length) {
 			keyHighlightedIndex = 0;
 		}
 		updateTabHighlight();
+		event.preventDefault();
+	} else if (event.keyCode == 38) { // up
+		moveTabHighlightVertically(-1);
+		updateTabHighlight();
+		event.preventDefault();
+  	} else if (event.keyCode == 40) { // down
+		moveTabHighlightVertically(1);
+		updateTabHighlight();
+		event.preventDefault();
+  	} else if (event.keyCode == 27) { // esc
+		if (originalKeyHighlightedIndex >= 0) {
+			keyHighlightedIndex = -1;
+			updateTabHighlight();
+			event.preventDefault();
+		}
   	} else if (event.keyCode == 32 || event.keyCode == 13) { // space or enter
   		activateHighlightedTab();
+  		event.preventDefault();
 	}
 };
 
@@ -107,18 +125,81 @@ window.onload = function() {
 };
 
 function updateTabHighlight() {
-	var tabs = document.getElementById('content_all').getElementsByClassName('tab');
+	var tabs = new Array();
+
+	var ownedTabs = document.getElementById('content').getElementsByClassName('tab');
+	for (var i = 0; i < ownedTabs.length; i++) {
+		tabs.push(ownedTabs[i]);
+	}
+	while (tabs.length % 3 != 0) {
+		tabs.push(undefined);
+	}
+
+	var otherTabs = document.getElementById('content_others').getElementsByClassName('tab');
+	for (var i = 0; i < otherTabs.length; i++) {
+		tabs.push(otherTabs[i]);
+	}
+	
+	var j = 0;
 	for (var i = 0; i < tabs.length; i++) {
+		if (tabs[i] == undefined) {
+			continue;
+		}
 		var originalClass = tabs[i].getAttribute('class');
-		if (i == keyHighlightedIndex && originalClass.indexOf("highlighted") < 0) {
+		if (j == keyHighlightedIndex && originalClass.indexOf("highlighted") < 0) {
 			tabs[i].setAttribute('class', originalClass + ' highlighted');
 			if (tabs[i].getAttribute('name').indexOf('other') >= 0) {
 				window.scrollTo(0, 192 * Math.floor(i / 3) - 192 + 56);
 			} else {
 				window.scrollTo(0, 192 * Math.floor(i / 3) - 192);
 			}
-		} else if (i != keyHighlightedIndex && originalClass.indexOf("highlighted") >= 0) {
+		} else if (j != keyHighlightedIndex && originalClass.indexOf("highlighted") >= 0) {
 			tabs[i].setAttribute('class', originalClass.replace('highlighted', ''));
+		}
+		j++;
+	}
+}
+
+function moveTabHighlightVertically(delta) {
+	var virtualTabs = new Array();
+	var realTabs = new Array();
+
+	var ownedTabs = document.getElementById('content').getElementsByClassName('tab');
+	for (var i = 0; i < ownedTabs.length; i++) {
+		virtualTabs.push(ownedTabs[i]);
+		realTabs.push(ownedTabs[i]);
+	}
+	while (virtualTabs.length % 3 != 0) {
+		virtualTabs.push(undefined);
+	}
+
+	var otherTabs = document.getElementById('content_others').getElementsByClassName('tab');
+	for (var i = 0; i < otherTabs.length; i++) {
+		virtualTabs.push(otherTabs[i]);
+		realTabs.push(otherTabs[i]);
+	}
+
+	var virtualIndex = 0;
+	for (virtualIndex = 0; virtualIndex < virtualTabs.length; virtualIndex++) {
+		if (virtualTabs[virtualIndex] == realTabs[keyHighlightedIndex]) {
+			break;
+		}
+	}
+
+	do {
+		virtualIndex += delta * 3;
+	} while (virtualTabs[virtualIndex] == undefined && virtualIndex >= 0 && virtualIndex < virtualTabs.length);
+
+	if (virtualIndex < 0) {
+		virtualIndex = 0;
+	}
+	if (virtualIndex >= virtualTabs.length) {
+		virtualIndex = virtualTabs.length - 1;
+	}
+
+	for (keyHighlightedIndex = 0; keyHighlightedIndex < realTabs.length; keyHighlightedIndex++) {
+		if (realTabs[keyHighlightedIndex] == virtualTabs[virtualIndex]) {
+			break;
 		}
 	}
 }
