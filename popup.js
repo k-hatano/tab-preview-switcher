@@ -196,6 +196,9 @@ function moveTabHighlightVertically(delta) {
 	if (virtualIndex >= virtualTabs.length) {
 		virtualIndex = virtualTabs.length - 1;
 	}
+	while (virtualTabs[virtualIndex] == undefined) {
+		virtualIndex--;
+	}
 
 	for (keyHighlightedIndex = 0; keyHighlightedIndex < realTabs.length; keyHighlightedIndex++) {
 		if (realTabs[keyHighlightedIndex] == virtualTabs[virtualIndex]) {
