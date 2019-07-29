@@ -35,5 +35,10 @@
 		"default_icon": "tps_16.png",
 		"default_title":"Tab Preview Switcher",
 		"default_popup": "popup.html"
+	},
+	"options_ui": {
+		"page": "options.html",
+		"chrome_style": true,
+		"open_in_tab": false
 	}
 }
