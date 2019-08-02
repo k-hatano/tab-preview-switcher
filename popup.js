@@ -62,7 +62,11 @@ window.onload = function() {
 							} else {
 								tabElement.setAttribute('name', 'other_tab_' + tabs[i].windowId + '_' + tabs[i].id);
 							}
-							getFirstByClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
+							if (tabs[i].favIconUrl == undefined || tabs[i].favIconUrl.length == 0) {
+								getFirstByClass(tabElement, 'tab_favicon').setAttribute('src', chrome.runtime.getURL('whitepaper.png'));
+							} else {
+								getFirstByClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
+							}
 							getFirstByClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + tabs[i].windowId + '_' + tabs[i].id);
 							getFirstByClass(tabElement, 'tab_title_span').innerText = tabs[i].title;
 							getFirstByClass(tabElement, 'tab_title_span').setAttribute('title', tabs[i].title + "\n" + tabs[i].url);

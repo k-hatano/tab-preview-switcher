@@ -40,5 +40,8 @@
 		"page": "options.html",
 		"chrome_style": true,
 		"open_in_tab": false
-	}
+	},
+	"web_accessible_resources": [
+		"whitepaper.png"
+	]
 }
