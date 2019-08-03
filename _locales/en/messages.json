@@ -9,7 +9,10 @@
     "message": "New Tab"
   },
   "pinnedTab": {
-    "message": "Pinned Tab"
+    "message": "Pinned Tab : Click to unpin tab"
+  },
+  "unpinnedTab": {
+    "message": "Click to pin tab"
   },
   "otherWindows": {
     "message": "Other Windows"

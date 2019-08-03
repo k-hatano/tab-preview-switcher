@@ -9,7 +9,10 @@
     "message": "新しいタブ"
   },
   "pinnedTab": {
-    "message": "固定されたタブ"
+    "message": "固定されたタブ : クリックするとタブの固定を解除します"
+  },
+  "unpinnedTab": {
+    "message": "クリックするとタブを固定します"
   },
   "otherWindows": {
     "message": "他のウィンドウ"

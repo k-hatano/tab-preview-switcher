@@ -45,6 +45,10 @@ window.onkeydown = function(event) {
 };
 
 window.onload = function() {
+	constructContentOfPopup();
+};
+
+function constructContentOfPopup() {
 	document.getElementById('content').innerHTML = '';
 
 	chrome.extension.sendMessage("updateCurrentTab", function(response) {
@@ -69,6 +73,7 @@ window.onload = function() {
 							}
 							getFirstByClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + tabs[i].windowId + '_' + tabs[i].id);
 							getFirstByClass(tabElement, 'tab_title_span').innerText = tabs[i].title;
+							getFirstByClass(tabElement, 'tab_title_span').setAttribute('id', 'tab_title_span_' + tabs[i].windowId + '_' + tabs[i].id);
 							getFirstByClass(tabElement, 'tab_title_span').setAttribute('title', tabs[i].title + "\n" + tabs[i].url);
 							tabElement.removeAttribute('id');
 							getFirstByClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + tabs[i].windowId + '_' + tabs[i].id);
@@ -79,7 +84,7 @@ window.onload = function() {
 							getFirstByClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + tabs[i].windowId + '_' + tabs[i].id);
 							getFirstByClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 							if (tabs[i].pinned == false) {
-								getFirstByClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin hidden');
+								getFirstByClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
 							}
 							if (tabs[i].windowId == currentWindow.id) {
 								document.getElementById('content').innerHTML += tabElement.outerHTML;
@@ -107,6 +112,13 @@ window.onload = function() {
 						for (var i = 0; i < tabs.length; i++) {
 							if (document.getElementById('cover_' + tabs[i].windowId + '_' + tabs[i].id) != null) {
 								document.getElementById('cover_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('click', tabClicked);
+								document.getElementById('cover_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('mouseenter', mouseEnterIntoTab);
+								document.getElementById('cover_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('mouseleave', mouseLeaveFromTab);
+								document.getElementById('tab_title_span_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('mouseenter', mouseEnterIntoTab);
+								document.getElementById('tab_title_span_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('mouseleave', mouseLeaveFromTab);
+								document.getElementById('pin_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('mouseenter', mouseEnterIntoTab);
+								document.getElementById('pin_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('mouseleave', mouseLeaveFromTab);
+								document.getElementById('pin_' + tabs[i].windowId + '_' + tabs[i].id).addEventListener('click', pinClicked);
 							}
 
 							if (document.getElementById('pin_' + tabs[i].windowId + '_' + tabs[i].id) != null) {
@@ -126,7 +138,45 @@ window.onload = function() {
 	});
 
 	localizeMessages();
-};
+}
+
+function mouseEnterIntoTab(event) {
+	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)$/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+
+	if (document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		document.getElementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin translucent');
+	} else {
+		document.getElementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin opaque');
+	}
+}
+
+function mouseLeaveFromTab(event) {
+	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+
+	if (document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		document.getElementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin transparent');
+	} else {
+		document.getElementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin');
+	}
+}
+function pinClicked(event) {
+	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+
+	if (document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		chrome.tabs.update(tabId, {pinned: true}, function(e){ constructContentOfPopup(); });
+	} else {
+		chrome.tabs.update(tabId, {pinned: false}, function(e){ constructContentOfPopup(); });
+	}
+}
 
 function updateTabHighlight() {
 	var tabs = new Array();

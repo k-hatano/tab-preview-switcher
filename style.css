@@ -114,6 +114,18 @@ body {
 	display: none;
 }
 
+.opaque {
+	opacity: 0.75;
+}
+
+.translucent {
+	opacity: 0.25;
+}
+
+.transparent {
+	opacity: 0;
+}
+
 #separator {
 	width: 576px;
 	height: 56px;
