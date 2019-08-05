@@ -13,22 +13,41 @@ chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	});
 });
 
-chrome.tabs.onUpdated.addListener(function(updatedTabId) {
-	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
+chrome.tabs.onUpdated.addListener(function(updatedTabId, changeInfo, updatedTab) {
+	if (!updatedTab.selected) {
+		return;
+	}
+	chrome.windows.getCurrent(null, function(windowUpdatedTab) {
+		chrome.tabs.captureVisibleTab(windowUpdatedTab.id, {format: 'jpeg'}, function(imageUrl) {
 			compressImage(imageUrl, function (newImageUrl){
-				if (tabImages[aWindow.id] == undefined) {
-					tabImages[aWindow.id] = {};
+				if (tabImages[windowUpdatedTab.id] == undefined) {
+					tabImages[windowUpdatedTab.id] = {};
 				}
-				tabImages[aWindow.id][updatedTabId] = new String(newImageUrl);
+				tabImages[windowUpdatedTab.id][updatedTabId] = new String(newImageUrl);
+			});
+		});
+	});
+});
+
+chrome.tabs.onCreated.addListener(function(createdTab){
+	if (!updatedTab.selected) {
+		return;
+	}
+	chrome.windows.getCurrent(null, function(windowCreatedTab) {
+		chrome.tabs.captureVisibleTab(windowCreatedTab.id, {format: 'jpeg'}, function(imageUrl) {
+			compressImage(imageUrl, function (newImageUrl){
+				if (tabImages[windowCreatedTab.id] == undefined) {
+					tabImages[windowCreatedTab.id] = {};
+				}
+				tabImages[windowCreatedTab.id][updatedTabId] = new String(newImageUrl);
 			});
 		});
 	});
 });
 
 chrome.tabs.onRemoved.addListener(function(removedTabId) {
-	chrome.windows.getCurrent(null, function(aWindow) {
-		delete tabImages[aWindow.id][removedTabId];
+	chrome.windows.getCurrent(null, function(windowRemovedTab) {
+		delete tabImages[windowRemovedTab.id][removedTabId];
 	});
 });
 

@@ -115,11 +115,11 @@ body {
 }
 
 .opaque {
-	opacity: 0.75;
+	opacity: 0.8;
 }
 
 .translucent {
-	opacity: 0.25;
+	opacity: 0.2;
 }
 
 .transparent {

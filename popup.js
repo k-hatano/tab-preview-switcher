@@ -82,9 +82,11 @@ function constructContentOfPopup() {
 								selectedIndex = i;
 							}
 							getFirstByClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + tabs[i].windowId + '_' + tabs[i].id);
-							getFirstByClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 							if (tabs[i].pinned == false) {
+								getFirstByClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("unpinnedTab"));
 								getFirstByClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
+							} else {
+								getFirstByClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 							}
 							if (tabs[i].windowId == currentWindow.id) {
 								document.getElementById('content').innerHTML += tabElement.outerHTML;
@@ -172,9 +174,13 @@ function pinClicked(event) {
 
 	if (document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
 		|| document.getElementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
-		chrome.tabs.update(tabId, {pinned: true}, function(e){ constructContentOfPopup(); });
+		chrome.tabs.update(tabId, {pinned: true, active: true}, function(e){ 
+			constructContentOfPopup();
+		});
 	} else {
-		chrome.tabs.update(tabId, {pinned: false}, function(e){ constructContentOfPopup(); });
+		chrome.tabs.update(tabId, {pinned: false, active: true}, function(e){
+			constructContentOfPopup();
+		});
 	}
 }
 
