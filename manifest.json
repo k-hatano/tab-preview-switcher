@@ -27,6 +27,7 @@
 		"tabs",
 		"contextMenus",
 		"activeTab",
+		"storage",
 		"http://*/*",
 		"https://*/*",
 		"<all_urls>"
@@ -35,5 +36,9 @@
 		"default_icon": "tps_16.png",
 		"default_title":"Tab Preview Switcher",
 		"default_popup": "popup.html"
+	},
+	"options_ui": {
+		"page": "options.html",
+		"open_in_tab": false
 	}
 }

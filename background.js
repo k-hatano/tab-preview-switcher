@@ -1,6 +1,7 @@
 
 var tabImages = {};
 var jpegQuality = 32;
+var imageDepth = 1;
 
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	chrome.tabs.captureVisibleTab(activatedTabInfo.windowId, {format: 'jpeg'}, function(imageUrl) {
@@ -34,10 +35,13 @@ chrome.tabs.onRemoved.addListener(function(removedTabId) {
 
 chrome.extension.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		if (request == "requestTabImages") {
+		if (request.name == "requestTabImages") {
 			sendResponse({tabs: tabImages});
-		} else if (request == "updateCurrentTab") {
+		} else if (request.name == "updateCurrentTab") {
 			updateCurrentTab();
+			sendResponse(undefined);
+		} else if (request.name == "updateImageDepth") {
+			imageDepth = parseInt(request.value);
 			sendResponse(undefined);
 		} else {
 			sendResponse(undefined);
@@ -67,11 +71,11 @@ function compressImage(imageUrl, callback) {
 	originalImage.onload = function() {
 		var imageSize = Math.min(originalImage.width, originalImage.height);
 		var newCanvas = document.createElement('canvas');
-		newCanvas.width = 176;
-		newCanvas.height = 150;
+		newCanvas.width = 176 * imageDepth;
+		newCanvas.height = 150 * imageDepth;
 		var ctx = newCanvas.getContext('2d');
 		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
-			0, 0, 176, 176);
+			0, 0, 176 * imageDepth, 176 * imageDepth);
 
 		callback(newCanvas.toDataURL('image/jpeg', jpegQuality));
 	};

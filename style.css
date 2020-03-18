@@ -66,6 +66,15 @@ body {
     z-index: 3;
 }
 
+.tab_close {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	right: 4px;
+	text-align: center;
+    z-index: 5;
+}
+
 .tab_thumbnail {
 	width: 176px;
 	height: 150px;
