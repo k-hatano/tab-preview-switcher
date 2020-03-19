@@ -1,4 +1,15 @@
 
+function optionLoaded() {
+  localizeMessages();
+  restoreOptions();
+}
+
+function localizeMessages() {
+  document.getElementById('localize_image_quality').innerHTML = chrome.i18n.getMessage("imageQuality");
+  document.getElementById('localize_low').innerHTML = chrome.i18n.getMessage("low");
+  document.getElementById('localize_high').innerHTML = chrome.i18n.getMessage("high");
+}
+
 function updateOptions() {
   var quality = document.getElementById('quality').value;
   chrome.storage.sync.set({
@@ -17,5 +28,5 @@ function restoreOptions() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
+document.addEventListener('DOMContentLoaded', optionLoaded);
 document.getElementById('quality').addEventListener('change', updateOptions);

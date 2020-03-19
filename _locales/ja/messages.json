@@ -13,5 +13,17 @@
   },
   "otherWindows": {
     "message": "他のウィンドウ"
+  },
+  "close": {
+    "message": "閉じる"
+  },
+  "imageQuality": {
+    "message": "画質"
+  },
+  "low": {
+    "message": "低"
+  },
+  "high": {
+    "message": "高"
   }
 }

@@ -1,5 +1,5 @@
 
-body {
+body.popup {
 	min-width: 576px;
 	min-height: 512px;
 	background-color: #888;
@@ -51,28 +51,46 @@ body {
     -webkit-text-overflow: ellipsis;
 }
 
+.tab_title.entered {
+	max-width: 146px;
+	width: 146px;
+}
+
 .tab_favicon {
 	width: 16px;
 	height: 16px;
 	margin-right: 4px;
+	vertical-align: middle;
 }
 
 .tab_title_span {
-	height: 18px;
+	height: 16px;
 	margin-right: 4px;
 	font-family: sans-serif;
-	vertical-align: bottom;
+	vertical-align: middle;
 	position: relative;
     z-index: 3;
 }
 
 .tab_close {
 	position: absolute;
-	width: 16px;
-	height: 16px;
-	right: 4px;
+	width: 22px;
+	height: 22px;
+	top: 2px;
+	right: 2px;
 	text-align: center;
+	vertical-align: middle;
     z-index: 5;
+}
+
+.tab_close img {
+	margin: 3px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.tab_close.entered {
+	background: #0003;
 }
 
 .tab_thumbnail {
@@ -142,4 +160,8 @@ body {
 	font-size: 1.5em;
 	color: #ddd;
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.options {
+	padding: 8px;
 }

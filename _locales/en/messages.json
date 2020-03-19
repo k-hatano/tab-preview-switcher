@@ -13,5 +13,17 @@
   },
   "otherWindows": {
     "message": "Other Windows"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "imageQuality": {
+    "message": "Image Quality"
+  },
+  "low": {
+    "message": "Low"
+  },
+  "high": {
+    "message": "High"
   }
 }

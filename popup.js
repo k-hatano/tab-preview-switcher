@@ -56,26 +56,31 @@ window.onload = function() {
 						var template = elementById('tab_template');
 
 						for (var i = 0; i < tabs.length; i++) {
-							var windowTabId = tabs[i].windowId + '_' + tabs[i].id;
+							var idsString = tabs[i].windowId + '_' + tabs[i].id;
 
 							var tabElement = template.cloneNode(true);
 							if (tabs[0].windowId == currentWindow.id) {
-								tabElement.setAttribute('name', 'tab_' + windowTabId);
+								tabElement.setAttribute('name', 'tab_' + idsString);
 							} else {
-								tabElement.setAttribute('name', 'other_tab_' + windowTabId);
+								tabElement.setAttribute('name', 'other_tab_' + idsString);
 							}
-							firstClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
-							firstClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + windowTabId);
+							if (tabs[i].favIconUrl == undefined || tabs[i].favIconUrl.length == 0) {
+								firstClass(tabElement, 'tab_favicon').setAttribute('src', chrome.runtime.getURL('whitepaper.png'));
+							} else {
+								firstClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
+							}
+							firstClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + tabs[i].windowId + '_' + tabs[i].id);
 							firstClass(tabElement, 'tab_title_span').innerText = tabs[i].title;
 							firstClass(tabElement, 'tab_title_span').setAttribute('title', tabs[i].title + "\n" + tabs[i].url);
-							firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + windowTabId);
-							tabElement.removeAttribute('id');
-							firstClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + windowTabId);
+							firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
+							firstClass(tabElement, 'tab_close').setAttribute('title', chrome.i18n.getMessage("close"));
+							tabElement.setAttribute('id', 'tab_' + idsString);
+							firstClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + idsString);
 							if (tabs[i].windowId == currentWindow.id && tabs[i].selected) {
 								firstClass(tabElement, 'tab_cover').setAttribute('class', 'tab_cover selected');
 								selectedIndex = i;
 							}
-							firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + windowTabId);
+							firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + idsString);
 							firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 							if (tabs[i].pinned == false) {
 								firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin hidden');
@@ -89,33 +94,39 @@ window.onload = function() {
 							}
 						}
 
+						// 現在のウィンドウに対しては、「新しいタブ」を表示
 						if (tabs[0].windowId == currentWindow.id) {
 							var newTabElement = template.cloneNode(true);
 							newTabElement.setAttribute('class','tab new_tab');
 							newTabElement.setAttribute('name', 'new_tab');
+							newTabElement.setAttribute('id','cover_new');
 							firstClass(newTabElement, 'tab_favicon').setAttribute('class', 'tab_favicon hidden');
 							firstClass(newTabElement, 'tab_thumbnail').setAttribute('class', 'tab_thumbnail hidden');
 							firstClass(newTabElement, 'tab_title_span').setAttribute('class', 'tab_title_span hidden');
 							firstClass(newTabElement, 'tab_close').setAttribute('id', 'tab_title_span hidden');
 							firstClass(newTabElement, 'tab_cover').innerText = '+';
 							firstClass(newTabElement, 'tab_cover').setAttribute('title', chrome.i18n.getMessage("newTab"));
-							newTabElement.removeAttribute('id');
 							elementById('content').innerHTML += newTabElement.outerHTML;
 						}
 
 						for (var i = 0; i < tabs.length; i++) {
-							var windowTabId = tabs[i].windowId + '_' + tabs[i].id;
+							var idsString = tabs[i].windowId + '_' + tabs[i].id;
 
-							if (elementById('cover_' + windowTabId) != null) {
-								elementById('cover_' + windowTabId).addEventListener('click', tabClicked);
+							elementById('tab_' + idsString).addEventListener('mouseenter', tabEntered);
+							elementById('tab_' + idsString).addEventListener('mouseleave', tabLeaved);
+
+							if (elementById('cover_' + idsString) != null) {
+								elementById('cover_' + idsString).addEventListener('click', tabClicked);
 							}
 
-							if (elementById('pin_' + windowTabId) != null) {
-								drawPin(elementById('pin_' + windowTabId), tabs[i].selected);
+							if (elementById('pin_' + idsString) != null) {
+								drawPin(elementById('pin_' + idsString), tabs[i].selected);
 							}
 
-							if (elementById('close_' + windowTabId) != null) {
-								elementById('close_' + windowTabId).addEventListener('click', closeTabClicked);
+							if (elementById('close_' + idsString) != null) {
+								elementById('close_' + idsString).addEventListener('click', closeTabClicked);
+								elementById('close_' + idsString).addEventListener('mouseenter', closeTabEntered);
+								elementById('close_' + idsString).addEventListener('mouseleave', closeTabLeaved);
 							}
 						}
 						elementById('cover_new').addEventListener('click', newTabClicked);
@@ -225,10 +236,8 @@ function activateMarkedTab() {
 	if (highlightedTabName == 'new_tab') {
 		createNewTab();
 	} else {
-		var matches = highlightedTabName.match(/tab_([0-9]+)_([0-9]+)/);
-		var windowId = parseInt(matches[1]);
-		var tabId = parseInt(matches[2]);	
-		activateTab(windowId, tabId);
+		var idSet = windowTabId(event.currentTarget.id, 'tab');
+		activateTab(idSet.windowId, idSet.tabId);
 		window.close();
 	}
 }
@@ -271,9 +280,9 @@ function requestTabImages(override) {
 function localizeMessages() {
 	var localizables = Array.from(document.getElementsByClassName('localizable'));
 
-	localizables.forEach(anElement => {
+	localizables.forEach(function(anElement){
 		anElement.innerText = chrome.i18n.getMessage(anElement.innerText);
-	})
+	});
 }
 
 chrome.extension.onMessage.addListener(
@@ -286,20 +295,55 @@ chrome.extension.onMessage.addListener(
 		}
 	});
 
+function windowTabId(elementId, elementKind) {
+	var regexString = elementKind + '_([0-9]+)_([0-9]+)';
+	var matches = elementId.match(new RegExp(regexString));
+	return {windowId: parseInt(matches[1]),
+			   tabId: parseInt(matches[2])}
+}
+
 function tabClicked(event) {
-	var matches = (event.target.id).match(/cover_([0-9]+)_([0-9]+)/);
-	var windowId = parseInt(matches[1]);
-	var tabId = parseInt(matches[2]);
-	activateTab(windowId, tabId);
+	var idSet = windowTabId(event.currentTarget.id, 'cover');
+	activateTab(idSet.windowId, idSet.tabId);
 	window.close();
 }
 
-function closeTabClicked() {
-	var matches = (event.target.id).match(/close_([0-9]+)_([0-9]+)/);
-	var windowId = parseInt(matches[1]);
-	var tabId = parseInt(matches[2]);
-	closeTab(windowId, tabId);
-	window.close();
+function closeTabClicked(event) {
+	var idSet = windowTabId(event.currentTarget.id, 'close');
+	closeTab(idSet.windowId, idSet.tabId);
+
+	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	tab.setAttribute('class', 'tab hidden');
+}
+
+function tabEntered(event) {
+	var idSet = windowTabId(event.currentTarget.id, 'tab');
+
+	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	firstClass(tab, 'tab_title').setAttribute('class', 'tab_title entered');
+	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close');
+}
+
+function tabLeaved(event) {
+	var idSet = windowTabId(event.currentTarget.id, 'tab');
+
+	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	firstClass(tab, 'tab_title').setAttribute('class', 'tab_title');
+	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close hidden');
+}
+
+function closeTabEntered(event) {
+	var idSet = windowTabId(event.currentTarget.id, 'close');
+
+	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close entered');
+}
+
+function closeTabLeaved(event) {
+	var idSet = windowTabId(event.currentTarget.id, 'close');
+
+	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close');
 }
 
 function activateTab(windowId, tabId) {

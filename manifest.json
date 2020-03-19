@@ -40,5 +40,9 @@
 	"options_ui": {
 		"page": "options.html",
 		"open_in_tab": false
-	}
+	},
+	"web_accessible_resources": [
+		"whitepaper.png",
+		"close.png"
+	]
 }
