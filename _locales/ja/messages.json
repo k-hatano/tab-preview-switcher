@@ -25,5 +25,8 @@
   },
   "high": {
     "message": "高"
+  },
+  "change_will_take_effect": {
+    "message": "変更は、次回以降に作成されるプレビューに対して反映されます。"
   }
 }

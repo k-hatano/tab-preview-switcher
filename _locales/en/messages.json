@@ -25,5 +25,8 @@
   },
   "high": {
     "message": "High"
+  },
+  "change_will_take_effect": {
+    "message": "The change will take effect to the previews made after now."
   }
 }

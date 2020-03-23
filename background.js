@@ -14,6 +14,7 @@ chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 				tabImages[activatedTabInfo.windowId] = {};
 			}
 			tabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(newImageUrl);
+			chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: tabImages}, function(ignore) { });
 		});
 	});
 });
@@ -26,6 +27,7 @@ chrome.tabs.onUpdated.addListener(function(updatedTabId) {
 					tabImages[aWindow.id] = {};
 				}
 				tabImages[aWindow.id][updatedTabId] = new String(newImageUrl);
+				chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: tabImages}, function(ignore) { });
 			});
 		});
 	});
@@ -40,7 +42,7 @@ chrome.tabs.onRemoved.addListener(function(removedTabId) {
 chrome.extension.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		if (request.name == "requestTabImages") {
-			sendResponse({tabs: tabImages});
+			sendResponse({tabImages: tabImages});
 		} else if (request.name == "updateCurrentTab") {
 			updateCurrentTab();
 			sendResponse(undefined);
@@ -61,7 +63,7 @@ function updateCurrentTab() {
 						tabImages[selectedTab.windowId] = {};
 					}
 					tabImages[selectedTab.windowId][selectedTab.id] = new String(newImageUrl);
-					chrome.extension.sendMessage("tabImageUpdated", function(response) { });
+					chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: tabImages}, function(ignore) { });
 				});
 			});
 		});

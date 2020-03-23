@@ -8,18 +8,24 @@ window.onkeydown = function(event) {
 		markedIndex = selectedIndex;
 	}
 
+	var tabsNum = 0;
 	var tabs = elementById('content_all').getElementsByClassName('tab');
+	for (var i = 0; i < tabs.length; i++) {
+		if (tabs[i].className.indexOf('hidden') < 0) {
+			tabsNum++;
+		}
+	}
 
 	if (event.keyCode == 37) { // left
 		markedIndex--;
 		if (markedIndex < 0) {
-			markedIndex = tabs.length - 1;
+			markedIndex = tabsNum - 1;
 		}
 		updateTabMark();
 		event.preventDefault();
   	} else if (event.keyCode == 39) { // right
   		markedIndex++;
-		if (markedIndex >= tabs.length) {
+		if (markedIndex >= tabsNum) {
 			markedIndex = 0;
 		}
 		updateTabMark();
@@ -149,6 +155,9 @@ function updateTabMark() {
 
 	var ownedTabs = elementById('content').getElementsByClassName('tab');
 	for (var i = 0; i < ownedTabs.length; i++) {
+		if (ownedTabs[i].className.indexOf('hidden') >= 0) {
+			continue;
+		}
 		tabs.push(ownedTabs[i]);
 	}
 	while (tabs.length % 3 != 0) {
@@ -157,6 +166,9 @@ function updateTabMark() {
 
 	var otherTabs = elementById('content_others').getElementsByClassName('tab');
 	for (var i = 0; i < otherTabs.length; i++) {
+		if (otherTabs[i].className.indexOf('hidden') >= 0) {
+			continue;
+		}
 		tabs.push(otherTabs[i]);
 	}
 	
@@ -186,6 +198,10 @@ function moveTabMarkVertically(delta) {
 
 	var ownedTabs = elementById('content').getElementsByClassName('tab');
 	for (var i = 0; i < ownedTabs.length; i++) {
+		if (ownedTabs[i].className.indexOf('hidden') >= 0) {
+			continue;
+		}
+
 		virtualTabs.push(ownedTabs[i]);
 		realTabs.push(ownedTabs[i]);
 	}
@@ -195,6 +211,9 @@ function moveTabMarkVertically(delta) {
 
 	var otherTabs = elementById('content_others').getElementsByClassName('tab');
 	for (var i = 0; i < otherTabs.length; i++) {
+		if (otherTabs[i].className.indexOf('hidden') >= 0) {
+			continue;
+		}
 		virtualTabs.push(otherTabs[i]);
 		realTabs.push(otherTabs[i]);
 	}
@@ -236,7 +255,7 @@ function activateMarkedTab() {
 	if (highlightedTabName == 'new_tab') {
 		createNewTab();
 	} else {
-		var idSet = windowTabId(event.currentTarget.id, 'tab');
+		var idSet = windowTabId(highlightedTabName, 'tab');
 		activateTab(idSet.windowId, idSet.tabId);
 		window.close();
 	}
@@ -252,29 +271,33 @@ function firstClass(elements, className) {
 
 function requestTabImages(override) {
 	chrome.extension.sendMessage({name: "requestTabImages"}, function(response) {
-		var responseTabs = response.tabs;
-		for (var k = 0; k < Object.keys(responseTabs).length; k++) {
-			var kKey = Object.keys(responseTabs)[k];
-			var kValue = Object.values(responseTabs)[k];
-			for (var j = 0; j < Object.keys(kValue).length; j++) {
-				var key = Object.keys(kValue)[j];
-				var value = Object.values(kValue)[j];
+		tabImagesUpdated(response.tabImages, override);
+	});
+}
 
-				if (kKey != null && key != null && elementById('thumbnail_' + kKey + '_' + key) != null) {
-					var element = elementById('thumbnail_' + kKey + '_' + key);
-					if (override == false && element.getAttribute('src') != undefined) {
-						continue;
-					}
+function tabImagesUpdated(tabImages, override) {
+	var responseTabs = tabImages;
+	for (var k = 0; k < Object.keys(responseTabs).length; k++) {
+		var kKey = Object.keys(responseTabs)[k];
+		var kValue = Object.values(responseTabs)[k];
+		for (var j = 0; j < Object.keys(kValue).length; j++) {
+			var key = Object.keys(kValue)[j];
+			var value = Object.values(kValue)[j];
 
-					if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
-						element.setAttribute('src', new String(value));
-					} else {
-						element.removeAttribute('src');
-					}
+			if (kKey != null && key != null && elementById('thumbnail_' + kKey + '_' + key) != null) {
+				var element = elementById('thumbnail_' + kKey + '_' + key);
+				if (override == false && element.getAttribute('src') != undefined) {
+					continue;
+				}
+
+				if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
+					element.setAttribute('src', new String(value));
+				} else {
+					element.removeAttribute('src');
 				}
 			}
 		}
-	});
+	}
 }
 
 function localizeMessages() {
@@ -287,8 +310,8 @@ function localizeMessages() {
 
 chrome.extension.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		if (request == "tabImageUpdated") {
-			requestTabImages(false);
+		if (request.name == "tabImageUpdated") {
+			requestTabImages(false, request.tabImages);
 			sendResponse(undefined);
 		} else {
 			sendResponse(undefined);
@@ -352,7 +375,6 @@ function activateTab(windowId, tabId) {
 }
 
 function closeTab(windowId, tabId) {
-	chrome.windows.update(windowId, {focused: true}, function(ignore){});
 	chrome.tabs.remove(tabId, function(ignore){});
 }
 
