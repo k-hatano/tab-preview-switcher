@@ -1,10 +1,11 @@
 
-var tabImages = {};
-var jpegQuality = 32;
-var imageDepth = 1;
+let tabImages = {};
+let jpegQuality = 32;
+let imageDepth = 1;
+let rows = 3;
 
 window.onload = function() {
-	updateImageDepth();
+	updateSettings();
 }
 
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
@@ -45,9 +46,9 @@ chrome.extension.onMessage.addListener(
 			sendResponse({tabImages: tabImages});
 		} else if (request.name == "updateCurrentTab") {
 			updateCurrentTab();
-			sendResponse(undefined);
-		} else if (request.name == "updateImageDepth") {
-			updateImageDepth();
+			sendResponse({tabImages: tabImages, rows: rows});
+		} else if (request.name == "updateSettings") {
+			updateSettings();
 			sendResponse(undefined);
 		} else {
 			sendResponse(undefined);
@@ -71,15 +72,15 @@ function updateCurrentTab() {
 }
 
 function compressImage(imageUrl, callback) {
-	var originalImage = new Image();
+	let originalImage = new Image();
 	originalImage.src = imageUrl;
 
 	originalImage.onload = function() {
-		var imageSize = Math.min(originalImage.width, originalImage.height);
-		var newCanvas = document.createElement('canvas');
+		let imageSize = Math.min(originalImage.width, originalImage.height);
+		let newCanvas = document.createElement('canvas');
 		newCanvas.width = 176 * imageDepth;
 		newCanvas.height = 150 * imageDepth;
-		var ctx = newCanvas.getContext('2d');
+		let ctx = newCanvas.getContext('2d');
 		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
 			0, 0, 176 * imageDepth, 176 * imageDepth);
 
@@ -87,10 +88,12 @@ function compressImage(imageUrl, callback) {
 	};
 }
 
-function updateImageDepth() {
+function updateSettings() {
 	chrome.storage.sync.get({
-		quality: 1 // low
+		quality: 1, // low
+		rows: 3
 	}, function(items) {
 	    imageDepth = items.quality;
+	    rows = items.rows;
 	});
 }

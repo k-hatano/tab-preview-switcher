@@ -26,6 +26,12 @@
   "high": {
     "message": "高"
   },
+  "rows": {
+    "message": "行数"
+  },
+  "columns": {
+    "message": "列数"
+  },
   "change_will_take_effect": {
     "message": "変更は、次回以降に作成されるプレビューに対して反映されます。"
   }

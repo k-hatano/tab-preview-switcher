@@ -1,16 +1,17 @@
 
-var selectedIndex = -1;
-var markedIndex = -1;
+let selectedIndex = -1;
+let markedIndex = -1;
+let rows = 3;
 
 window.onkeydown = function(event) {
-	var originalMarkedIndex = markedIndex;
+	let originalMarkedIndex = markedIndex;
 	if (markedIndex == -1) {
 		markedIndex = selectedIndex;
 	}
 
-	var tabsNum = 0;
-	var tabs = elementById('content_all').getElementsByClassName('tab');
-	for (var i = 0; i < tabs.length; i++) {
+	let tabsNum = 0;
+	let tabs = elementById('content_all').getElementsByClassName('tab');
+	for (let i = 0; i < tabs.length; i++) {
 		if (tabs[i].className.indexOf('hidden') < 0) {
 			tabsNum++;
 		}
@@ -54,17 +55,22 @@ window.onload = function() {
 	elementById('content').innerHTML = '';
 
 	chrome.extension.sendMessage({name: "updateCurrentTab"}, function(response) {
+		rows = response.rows;
+		elementById('body').style.width = parseInt(rows * 192) + 'px';
+		elementById('separator').style.width = parseInt(rows * 192 - 32) + 'px';
+		elementById('bottom_padding').style.width = parseInt(rows * 192) + 'px';
+
 		chrome.windows.getCurrent(null, function(currentWindow) {
 			chrome.windows.getAll(null, function(allWindows) {
-				for (var w = 0; w < allWindows.length; w++) {
-					var aWindow = allWindows[w];
+				for (let w = 0; w < allWindows.length; w++) {
+					let aWindow = allWindows[w];
 					chrome.tabs.getAllInWindow(aWindow.id, function(tabs){
-						var template = elementById('tab_template');
+						let template = elementById('tab_template');
 
-						for (var i = 0; i < tabs.length; i++) {
-							var idsString = tabs[i].windowId + '_' + tabs[i].id;
+						for (let i = 0; i < tabs.length; i++) {
+							let idsString = tabs[i].windowId + '_' + tabs[i].id;
 
-							var tabElement = template.cloneNode(true);
+							let tabElement = template.cloneNode(true);
 							if (tabs[0].windowId == currentWindow.id) {
 								tabElement.setAttribute('name', 'tab_' + idsString);
 							} else {
@@ -102,7 +108,7 @@ window.onload = function() {
 
 						// 現在のウィンドウに対しては、「新しいタブ」を表示
 						if (tabs[0].windowId == currentWindow.id) {
-							var newTabElement = template.cloneNode(true);
+							let newTabElement = template.cloneNode(true);
 							newTabElement.setAttribute('class','tab new_tab');
 							newTabElement.setAttribute('name', 'new_tab');
 							newTabElement.setAttribute('id','cover_new');
@@ -115,8 +121,8 @@ window.onload = function() {
 							elementById('content').innerHTML += newTabElement.outerHTML;
 						}
 
-						for (var i = 0; i < tabs.length; i++) {
-							var idsString = tabs[i].windowId + '_' + tabs[i].id;
+						for (let i = 0; i < tabs.length; i++) {
+							let idsString = tabs[i].windowId + '_' + tabs[i].id;
 
 							elementById('tab_' + idsString).addEventListener('mouseenter', tabEntered);
 							elementById('tab_' + idsString).addEventListener('mouseleave', tabLeaved);
@@ -151,10 +157,10 @@ window.onload = function() {
 };
 
 function updateTabMark() {
-	var tabs = new Array();
+	let tabs = new Array();
 
-	var ownedTabs = elementById('content').getElementsByClassName('tab');
-	for (var i = 0; i < ownedTabs.length; i++) {
+	let ownedTabs = elementById('content').getElementsByClassName('tab');
+	for (let i = 0; i < ownedTabs.length; i++) {
 		if (ownedTabs[i].className.indexOf('hidden') >= 0) {
 			continue;
 		}
@@ -164,20 +170,20 @@ function updateTabMark() {
 		tabs.push(undefined);
 	}
 
-	var otherTabs = elementById('content_others').getElementsByClassName('tab');
-	for (var i = 0; i < otherTabs.length; i++) {
+	let otherTabs = elementById('content_others').getElementsByClassName('tab');
+	for (let i = 0; i < otherTabs.length; i++) {
 		if (otherTabs[i].className.indexOf('hidden') >= 0) {
 			continue;
 		}
 		tabs.push(otherTabs[i]);
 	}
 	
-	var j = 0;
-	for (var i = 0; i < tabs.length; i++) {
+	let j = 0;
+	for (let i = 0; i < tabs.length; i++) {
 		if (tabs[i] == undefined) {
 			continue;
 		}
-		var originalClass = tabs[i].getAttribute('class');
+		let originalClass = tabs[i].getAttribute('class');
 		if (j == markedIndex && originalClass.indexOf("highlighted") < 0) {
 			tabs[i].setAttribute('class', originalClass + ' highlighted');
 			if (tabs[i].getAttribute('name').indexOf('other') >= 0) {
@@ -193,11 +199,11 @@ function updateTabMark() {
 }
 
 function moveTabMarkVertically(delta) {
-	var virtualTabs = new Array();
-	var realTabs = new Array();
+	let virtualTabs = new Array();
+	let realTabs = new Array();
 
-	var ownedTabs = elementById('content').getElementsByClassName('tab');
-	for (var i = 0; i < ownedTabs.length; i++) {
+	let ownedTabs = elementById('content').getElementsByClassName('tab');
+	for (let i = 0; i < ownedTabs.length; i++) {
 		if (ownedTabs[i].className.indexOf('hidden') >= 0) {
 			continue;
 		}
@@ -209,8 +215,8 @@ function moveTabMarkVertically(delta) {
 		virtualTabs.push(undefined);
 	}
 
-	var otherTabs = elementById('content_others').getElementsByClassName('tab');
-	for (var i = 0; i < otherTabs.length; i++) {
+	let otherTabs = elementById('content_others').getElementsByClassName('tab');
+	for (let i = 0; i < otherTabs.length; i++) {
 		if (otherTabs[i].className.indexOf('hidden') >= 0) {
 			continue;
 		}
@@ -218,7 +224,7 @@ function moveTabMarkVertically(delta) {
 		realTabs.push(otherTabs[i]);
 	}
 
-	var virtualIndex = 0;
+	let virtualIndex = 0;
 	for (virtualIndex = 0; virtualIndex < virtualTabs.length; virtualIndex++) {
 		if (virtualTabs[virtualIndex] == realTabs[markedIndex]) {
 			break;
@@ -247,15 +253,15 @@ function moveTabMarkVertically(delta) {
 }
 
 function activateMarkedTab() {
-	var tabs = elementById('content_all').getElementsByClassName('tab');
+	let tabs = elementById('content_all').getElementsByClassName('tab');
 	if (markedIndex == -1) {
 		markedIndex = selectedIndex;
 	}
-	var highlightedTabName = tabs[markedIndex].getAttribute('name');
+	let highlightedTabName = tabs[markedIndex].getAttribute('name');
 	if (highlightedTabName == 'new_tab') {
 		createNewTab();
 	} else {
-		var idSet = windowTabId(highlightedTabName, 'tab');
+		let idSet = windowTabId(highlightedTabName, 'tab');
 		activateTab(idSet.windowId, idSet.tabId);
 		window.close();
 	}
@@ -276,16 +282,16 @@ function requestTabImages(override) {
 }
 
 function tabImagesUpdated(tabImages, override) {
-	var responseTabs = tabImages;
-	for (var k = 0; k < Object.keys(responseTabs).length; k++) {
-		var kKey = Object.keys(responseTabs)[k];
-		var kValue = Object.values(responseTabs)[k];
-		for (var j = 0; j < Object.keys(kValue).length; j++) {
-			var key = Object.keys(kValue)[j];
-			var value = Object.values(kValue)[j];
+	let responseTabs = tabImages;
+	for (let k = 0; k < Object.keys(responseTabs).length; k++) {
+		let kKey = Object.keys(responseTabs)[k];
+		let kValue = Object.values(responseTabs)[k];
+		for (let j = 0; j < Object.keys(kValue).length; j++) {
+			let key = Object.keys(kValue)[j];
+			let value = Object.values(kValue)[j];
 
 			if (kKey != null && key != null && elementById('thumbnail_' + kKey + '_' + key) != null) {
-				var element = elementById('thumbnail_' + kKey + '_' + key);
+				let element = elementById('thumbnail_' + kKey + '_' + key);
 				if (override == false && element.getAttribute('src') != undefined) {
 					continue;
 				}
@@ -301,7 +307,7 @@ function tabImagesUpdated(tabImages, override) {
 }
 
 function localizeMessages() {
-	var localizables = Array.from(document.getElementsByClassName('localizable'));
+	let localizables = Array.from(document.getElementsByClassName('localizable'));
 
 	localizables.forEach(function(anElement){
 		anElement.innerText = chrome.i18n.getMessage(anElement.innerText);
@@ -319,53 +325,53 @@ chrome.extension.onMessage.addListener(
 	});
 
 function windowTabId(elementId, elementKind) {
-	var regexString = elementKind + '_([0-9]+)_([0-9]+)';
-	var matches = elementId.match(new RegExp(regexString));
+	let regexString = elementKind + '_([0-9]+)_([0-9]+)';
+	let matches = elementId.match(new RegExp(regexString));
 	return {windowId: parseInt(matches[1]),
 			   tabId: parseInt(matches[2])}
 }
 
 function tabClicked(event) {
-	var idSet = windowTabId(event.currentTarget.id, 'cover');
+	let idSet = windowTabId(event.currentTarget.id, 'cover');
 	activateTab(idSet.windowId, idSet.tabId);
 	window.close();
 }
 
 function closeTabClicked(event) {
-	var idSet = windowTabId(event.currentTarget.id, 'close');
+	let idSet = windowTabId(event.currentTarget.id, 'close');
 	closeTab(idSet.windowId, idSet.tabId);
 
-	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	tab.setAttribute('class', 'tab hidden');
 }
 
 function tabEntered(event) {
-	var idSet = windowTabId(event.currentTarget.id, 'tab');
+	let idSet = windowTabId(event.currentTarget.id, 'tab');
 
-	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	firstClass(tab, 'tab_title').setAttribute('class', 'tab_title entered');
 	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close');
 }
 
 function tabLeaved(event) {
-	var idSet = windowTabId(event.currentTarget.id, 'tab');
+	let idSet = windowTabId(event.currentTarget.id, 'tab');
 
-	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	firstClass(tab, 'tab_title').setAttribute('class', 'tab_title');
 	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close hidden');
 }
 
 function closeTabEntered(event) {
-	var idSet = windowTabId(event.currentTarget.id, 'close');
+	let idSet = windowTabId(event.currentTarget.id, 'close');
 
-	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close entered');
 }
 
 function closeTabLeaved(event) {
-	var idSet = windowTabId(event.currentTarget.id, 'close');
+	let idSet = windowTabId(event.currentTarget.id, 'close');
 
-	var tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close');
 }
 
@@ -387,10 +393,10 @@ function createNewTab() {
 }
 
 function drawPin(target, selected) {
-	var width = 24;
-	var height = 24;
+	let width = 24;
+	let height = 24;
 
-	var ctx = target.getContext('2d');
+	let ctx = target.getContext('2d');
     ctx.clearRect(0, 0, width, height);
 
     ctx.shadowBlur = 2;

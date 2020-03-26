@@ -1,16 +1,10 @@
 
 body.popup {
-	min-width: 576px;
-	min-height: 512px;
 	background-color: #888;
-}
-
-#content {
-	width: 576px;
+	height: 576px;
 }
 
 #bottom_padding {
-	width: 576px;
 	height: 8px;
 	background-color: transparent;
 	float: left;
@@ -141,14 +135,13 @@ body.popup {
 }
 
 #separator {
-	width: 576px;
 	height: 56px;
 	text-align: center;
 	float: left;
 }
 
 #separator .separator_bar {
-	width: 544px;
+	width: 100%;
 	text-align: center;
 	margin: 16px 16px 8px 16px;
 	background-color: #888;
@@ -163,5 +156,9 @@ body.popup {
 }
 
 .options {
-	padding: 8px;
+	padding: 4px 8px;
+}
+
+.options p {
+	margin: 4px 0px;
 }

@@ -26,6 +26,12 @@
   "high": {
     "message": "High"
   },
+  "rows": {
+    "message": "Rows"
+  },
+  "columns": {
+    "message": "Columns"
+  },
   "change_will_take_effect": {
     "message": "The change will take effect to the previews made after now."
   }
