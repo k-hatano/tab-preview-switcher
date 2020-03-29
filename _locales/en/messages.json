@@ -23,6 +23,9 @@
   "low": {
     "message": "Low"
   },
+  "medium": {
+    "message": "Medium"
+  },
   "high": {
     "message": "High"
   },
@@ -31,6 +34,9 @@
   },
   "columns": {
     "message": "Columns"
+  },
+  "backgroundColor": {
+    "message": "Background Color"
   },
   "change_will_take_effect": {
     "message": "The change will take effect to the previews made after now."

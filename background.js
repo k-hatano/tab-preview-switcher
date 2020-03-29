@@ -3,6 +3,7 @@ let tabImages = {};
 let jpegQuality = 32;
 let imageDepth = 1;
 let rows = 3;
+let backgroundColor = 'gray';
 
 window.onload = function() {
 	updateSettings();
@@ -46,7 +47,7 @@ chrome.extension.onMessage.addListener(
 			sendResponse({tabImages: tabImages});
 		} else if (request.name == "updateCurrentTab") {
 			updateCurrentTab();
-			sendResponse({tabImages: tabImages, rows: rows});
+			sendResponse({tabImages: tabImages, rows: rows, backgroundColor: backgroundColor});
 		} else if (request.name == "updateSettings") {
 			updateSettings();
 			sendResponse(undefined);
@@ -80,6 +81,7 @@ function compressImage(imageUrl, callback) {
 		let newCanvas = document.createElement('canvas');
 		newCanvas.width = 176 * imageDepth;
 		newCanvas.height = 150 * imageDepth;
+		jpegQuality = 32 * imageDepth;
 		let ctx = newCanvas.getContext('2d');
 		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
 			0, 0, 176 * imageDepth, 176 * imageDepth);
@@ -91,9 +93,11 @@ function compressImage(imageUrl, callback) {
 function updateSettings() {
 	chrome.storage.sync.get({
 		quality: 1, // low
-		rows: 3
+		rows: 3,
+		backgroundColor: 'gray'
 	}, function(items) {
 	    imageDepth = items.quality;
 	    rows = items.rows;
+	    backgroundColor = items.backgroundColor;
 	});
 }

@@ -60,6 +60,9 @@ window.onload = function() {
 		elementById('separator').style.width = parseInt(rows * 192 - 32) + 'px';
 		elementById('bottom_padding').style.width = parseInt(rows * 192) + 'px';
 
+		let backgroundColor = response.backgroundColor;
+		elementById('body').style.background = backgroundColor;
+
 		chrome.windows.getCurrent(null, function(currentWindow) {
 			chrome.windows.getAll(null, function(allWindows) {
 				for (let w = 0; w < allWindows.length; w++) {

@@ -23,6 +23,9 @@
   "low": {
     "message": "低"
   },
+  "medium": {
+    "message": "中"
+  },
   "high": {
     "message": "高"
   },
@@ -31,6 +34,9 @@
   },
   "columns": {
     "message": "列数"
+  },
+  "backgroundColor": {
+    "message": "背景色"
   },
   "change_will_take_effect": {
     "message": "変更は、次回以降に作成されるプレビューに対して反映されます。"
