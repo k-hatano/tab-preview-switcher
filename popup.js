@@ -1,7 +1,7 @@
 
 let selectedIndex = -1;
 let markedIndex = -1;
-let rows = 3;
+let columns = 3;
 
 window.onkeydown = function(event) {
 	let originalMarkedIndex = markedIndex;
@@ -52,13 +52,15 @@ window.onkeydown = function(event) {
 };
 
 window.onload = function() {
+	elementById('bottom_button_options').addEventListener('click', openOptionsPage);
 	elementById('content').innerHTML = '';
 
 	chrome.extension.sendMessage({name: "updateCurrentTab"}, function(response) {
-		rows = response.rows;
-		elementById('body').style.width = parseInt(rows * 192) + 'px';
-		elementById('separator').style.width = parseInt(rows * 192 - 32) + 'px';
-		elementById('bottom_padding').style.width = parseInt(rows * 192) + 'px';
+		columns = response.columns;
+		elementById('body').style.width = parseInt(columns * 192) + 'px';
+		elementById('separator').style.width = parseInt(columns * 192 - 32) + 'px';
+		elementById('bottom_padding').style.width = parseInt(columns * 192) + 'px';
+		elementById('bottom_button_div').style.width = parseInt(columns * 192 - 12) + 'px';
 
 		let backgroundColor = response.backgroundColor;
 		elementById('body').style.background = backgroundColor;
@@ -144,7 +146,9 @@ window.onload = function() {
 								elementById('close_' + idsString).addEventListener('mouseleave', closeTabLeaved);
 							}
 						}
-						elementById('cover_new').addEventListener('click', newTabClicked);
+						if (elementById('cover_new') != null) {
+							elementById('cover_new').addEventListener('click', newTabClicked);
+						}
 
 						requestTabImages(true);
 						if (tabs[0].windowId == currentWindow.id) {
@@ -393,6 +397,10 @@ function newTabClicked(event) {
 
 function createNewTab() {
 	chrome.tabs.create({active: true}, function(ignore){});
+}
+
+function openOptionsPage() {
+	chrome.runtime.openOptionsPage();
 }
 
 function drawPin(target, selected) {

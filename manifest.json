@@ -8,6 +8,16 @@
         "scripts": ["background.js"],
     	"persistent": true
      },
+	"permissions": [
+		"windows",
+		"tabs",
+		"activeTab",
+		"contextMenus",
+		"storage",
+		"http://*/*",
+		"https://*/*",
+		"<all_urls>"
+	],
 	"icons": {
 		"16": "tps_16.png",
 		"32": "tps_32.png",
@@ -21,16 +31,6 @@
 			"js": ["content.js"],
 			"run_at":"document_end"
 		}
-	],
-	"permissions": [
-		"windows",
-		"tabs",
-		"contextMenus",
-		"activeTab",
-		"storage",
-		"http://*/*",
-		"https://*/*",
-		"<all_urls>"
 	],
 	"browser_action": {
 		"default_icon": "tps_16.png",

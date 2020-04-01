@@ -17,6 +17,9 @@
   "close": {
     "message": "Close"
   },
+  "options": {
+    "message": "Options"
+  },
   "imageQuality": {
     "message": "Image Quality"
   },

@@ -2,7 +2,7 @@
 let tabImages = {};
 let jpegQuality = 32;
 let imageDepth = 1;
-let rows = 3;
+let columns = 3;
 let backgroundColor = 'gray';
 
 window.onload = function() {
@@ -47,7 +47,7 @@ chrome.extension.onMessage.addListener(
 			sendResponse({tabImages: tabImages});
 		} else if (request.name == "updateCurrentTab") {
 			updateCurrentTab();
-			sendResponse({tabImages: tabImages, rows: rows, backgroundColor: backgroundColor});
+			sendResponse({tabImages: tabImages, columns: columns, backgroundColor: backgroundColor});
 		} else if (request.name == "updateSettings") {
 			updateSettings();
 			sendResponse(undefined);
@@ -93,11 +93,11 @@ function compressImage(imageUrl, callback) {
 function updateSettings() {
 	chrome.storage.sync.get({
 		quality: 1, // low
-		rows: 3,
+		columns: 3,
 		backgroundColor: 'gray'
 	}, function(items) {
 	    imageDepth = items.quality;
-	    rows = items.rows;
+	    columns = items.columns;
 	    backgroundColor = items.backgroundColor;
 	});
 }

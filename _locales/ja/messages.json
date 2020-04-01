@@ -17,6 +17,9 @@
   "close": {
     "message": "閉じる"
   },
+  "options": {
+    "message": "オプション"
+  },
   "imageQuality": {
     "message": "画質"
   },

@@ -151,8 +151,27 @@ body.popup {
 #separator .separator_other_windows {
 	text-align: center;
 	font-size: 1.5em;
-	color: #ddd;
+	color: #fff;
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.bottom_button_div {
+	margin: 12px 0px 0px 0px;
+	padding: 4px;
+	text-align: right;
+	float: left;
+}
+
+#bottom_button_options {
+	padding: 6px;
+	background: #00000044;
+	border-style: none;
+	color: white;
+	border-radius: 6px;
+}
+
+#bottom_button_options:active {
+	background: #00000066;
 }
 
 .options {
@@ -161,4 +180,11 @@ body.popup {
 
 .options p {
 	margin: 4px 0px;
+}
+
+#options_color_preview {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: bottom;
 }
