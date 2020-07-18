@@ -26,6 +26,10 @@ body.popup {
 	float: left;
 }
 
+.tab.entered {
+	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
 .new_tab {
 	background-color: #ffff;
 }
@@ -135,16 +139,17 @@ body.popup {
 }
 
 #separator {
-	height: 56px;
+	height: 48px;
 	text-align: center;
+	padding: 16px 16px 0px 16px;
 	float: left;
 }
 
 #separator .separator_bar {
 	width: 100%;
 	text-align: center;
-	margin: 16px 16px 8px 16px;
 	background-color: #888;
+	margin: 4px 0px 12px 0px;
 	height: 0px;
 }
 
@@ -152,7 +157,7 @@ body.popup {
 	text-align: center;
 	font-size: 1.5em;
 	color: #fff;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .bottom_button_div {

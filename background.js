@@ -1,9 +1,9 @@
 
-let tabImages = {};
-let jpegQuality = 32;
-let imageDepth = 1;
-let columns = 3;
-let backgroundColor = 'gray';
+let gTabImages = {};
+let gJpegQuality = 32;
+let gImageDepth = 1;
+let gColumns = 3;
+let gBackgroundColor = 'gray';
 
 window.onload = function() {
 	updateSettings();
@@ -12,11 +12,11 @@ window.onload = function() {
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	chrome.tabs.captureVisibleTab(activatedTabInfo.windowId, {format: 'jpeg'}, function(imageUrl) {
 		compressImage(imageUrl, function (newImageUrl){
-			if (tabImages[activatedTabInfo.windowId] == undefined) {
-				tabImages[activatedTabInfo.windowId] = {};
+			if (gTabImages[activatedTabInfo.windowId] == undefined) {
+				gTabImages[activatedTabInfo.windowId] = {};
 			}
-			tabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(newImageUrl);
-			chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: tabImages}, function(ignore) { });
+			gTabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(newImageUrl);
+			chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 		});
 	});
 });
@@ -25,11 +25,11 @@ chrome.tabs.onUpdated.addListener(function(updatedTabId) {
 	chrome.windows.getCurrent(null, function(aWindow) {
 		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 			compressImage(imageUrl, function (newImageUrl){
-				if (tabImages[aWindow.id] == undefined) {
-					tabImages[aWindow.id] = {};
+				if (gTabImages[aWindow.id] == undefined) {
+					gTabImages[aWindow.id] = {};
 				}
-				tabImages[aWindow.id][updatedTabId] = new String(newImageUrl);
-				chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: tabImages}, function(ignore) { });
+				gTabImages[aWindow.id][updatedTabId] = new String(newImageUrl);
+				chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 			});
 		});
 	});
@@ -37,17 +37,17 @@ chrome.tabs.onUpdated.addListener(function(updatedTabId) {
 
 chrome.tabs.onRemoved.addListener(function(removedTabId) {
 	chrome.windows.getCurrent(null, function(aWindow) {
-		delete tabImages[aWindow.id][removedTabId];
+		delete gTabImages[aWindow.id][removedTabId];
 	});
 });
 
 chrome.extension.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		if (request.name == "requestTabImages") {
-			sendResponse({tabImages: tabImages});
+			sendResponse({tabImages: gTabImages});
 		} else if (request.name == "updateCurrentTab") {
 			updateCurrentTab();
-			sendResponse({tabImages: tabImages, columns: columns, backgroundColor: backgroundColor});
+			sendResponse({tabImages: gTabImages, columns: gColumns, backgroundColor: gBackgroundColor});
 		} else if (request.name == "updateSettings") {
 			updateSettings();
 			sendResponse(undefined);
@@ -61,11 +61,11 @@ function updateCurrentTab() {
 		chrome.tabs.getSelected(aWindow.id, function(selectedTab) {
 			chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
 				compressImage(imageUrl, function (newImageUrl){
-					if (tabImages[selectedTab.windowId] == undefined) {
-						tabImages[selectedTab.windowId] = {};
+					if (gTabImages[selectedTab.windowId] == undefined) {
+						gTabImages[selectedTab.windowId] = {};
 					}
-					tabImages[selectedTab.windowId][selectedTab.id] = new String(newImageUrl);
-					chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: tabImages}, function(ignore) { });
+					gTabImages[selectedTab.windowId][selectedTab.id] = new String(newImageUrl);
+					chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 				});
 			});
 		});
@@ -79,14 +79,14 @@ function compressImage(imageUrl, callback) {
 	originalImage.onload = function() {
 		let imageSize = Math.min(originalImage.width, originalImage.height);
 		let newCanvas = document.createElement('canvas');
-		newCanvas.width = 176 * imageDepth;
-		newCanvas.height = 150 * imageDepth;
-		jpegQuality = 32 * imageDepth;
+		newCanvas.width = 176 * gImageDepth;
+		newCanvas.height = 150 * gImageDepth;
+		gJpegQuality = 32 * gImageDepth;
 		let ctx = newCanvas.getContext('2d');
 		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
-			0, 0, 176 * imageDepth, 176 * imageDepth);
+			0, 0, 176 * gImageDepth, 176 * gImageDepth);
 
-		callback(newCanvas.toDataURL('image/jpeg', jpegQuality));
+		callback(newCanvas.toDataURL('image/jpeg', gJpegQuality));
 	};
 }
 
@@ -96,8 +96,8 @@ function updateSettings() {
 		columns: 3,
 		backgroundColor: 'gray'
 	}, function(items) {
-	    imageDepth = items.quality;
-	    columns = items.columns;
-	    backgroundColor = items.backgroundColor;
+	    gImageDepth = items.quality;
+	    gColumns = items.columns;
+	    gBackgroundColor = items.backgroundColor;
 	});
 }
