@@ -4,11 +4,6 @@ let gMarkedIndex = -1;
 let gColumns = 3;
 
 window.onkeydown = function(event) {
-	let originalgMarkedIndex = gMarkedIndex;
-	if (gMarkedIndex == -1) {
-		gMarkedIndex = gSelectedIndex;
-	}
-
 	let tabsNum = 0;
 	let tabs = elementById('content_all').getElementsByClassName('tab');
 	for (let i = 0; i < tabs.length; i++) {
@@ -18,6 +13,9 @@ window.onkeydown = function(event) {
 	}
 
 	if (event.keyCode == 37) { // left
+		if (gMarkedIndex == -1) {
+			gMarkedIndex = gSelectedIndex;
+		}
 		gMarkedIndex--;
 		if (gMarkedIndex < 0) {
 			gMarkedIndex = tabsNum - 1;
@@ -25,6 +23,9 @@ window.onkeydown = function(event) {
 		updateTabMark();
 		event.preventDefault();
 	} else if (event.keyCode == 39) { // right
+		if (gMarkedIndex == -1) {
+			gMarkedIndex = gSelectedIndex;
+		}
 		gMarkedIndex++;
 		if (gMarkedIndex >= tabsNum) {
 			gMarkedIndex = 0;
@@ -32,15 +33,21 @@ window.onkeydown = function(event) {
 		updateTabMark();
 		event.preventDefault();
 	} else if (event.keyCode == 38) { // up
+		if (gMarkedIndex == -1) {
+			gMarkedIndex = gSelectedIndex;
+		}
 		moveTabMarkVertically(-1);
 		updateTabMark();
 		event.preventDefault();
 	} else if (event.keyCode == 40) { // down
+		if (gMarkedIndex == -1) {
+			gMarkedIndex = gSelectedIndex;
+		}
 		moveTabMarkVertically(1);
 		updateTabMark();
 		event.preventDefault();
 	} else if (event.keyCode == 27) { // esc
-		if (originalgMarkedIndex >= 0) {
+		if (gMarkedIndex >= 0) {
 			gMarkedIndex = -1;
 			updateTabMark();
 			event.preventDefault();
@@ -54,8 +61,10 @@ window.onkeydown = function(event) {
 		updateTabMark();
 		event.preventDefault();
 	} else if (event.keyCode == 32 || event.keyCode == 13) { // space or enter
-		activateMarkedTab();
-		event.preventDefault();
+		if (gMarkedIndex >= 0) {
+			activateMarkedTab();
+			event.preventDefault();
+		}
 	}
 };
 
@@ -416,12 +425,12 @@ function tabLeaved(event) {
 
 function newTabEntered(event) {
 	let tab = elementById('new_tab');
-	tab.setAttribute('class', 'tab new_tab entered');
+	addClass(tab, 'entered');
 }
 
 function newTabLeaved(event) {
 	let tab = elementById('new_tab');
-	tab.setAttribute('class', 'tab new_tab');
+	removeClass(tab, 'entered');
 }
 
 function closeTabEntered(event) {
