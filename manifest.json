@@ -12,7 +12,6 @@
 		"windows",
 		"tabs",
 		"activeTab",
-		"contextMenus",
 		"storage",
 		"http://*/*",
 		"https://*/*",
