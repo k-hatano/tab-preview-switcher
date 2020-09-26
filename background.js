@@ -21,14 +21,17 @@ chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
 	});
 });
 
-chrome.tabs.onUpdated.addListener(function(updatedTabId) {
-	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
+chrome.tabs.onUpdated.addListener(function(updatedTabId, changeInfo, updatedTab) {
+	if (!updatedTab.active) {
+		return;
+	}
+	chrome.windows.getCurrent(null, function(tabCreatedWindow) {
+		chrome.tabs.captureVisibleTab(tabCreatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
 			compressImage(imageUrl, function (newImageUrl){
-				if (gTabImages[aWindow.id] == undefined) {
-					gTabImages[aWindow.id] = {};
+				if (gTabImages[tabCreatedWindow.id] == undefined) {
+					gTabImages[tabCreatedWindow.id] = {};
 				}
-				gTabImages[aWindow.id][updatedTabId] = new String(newImageUrl);
+				gTabImages[tabCreatedWindow.id][updatedTabId] = new String(newImageUrl);
 				chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 			});
 		});
@@ -36,8 +39,8 @@ chrome.tabs.onUpdated.addListener(function(updatedTabId) {
 });
 
 chrome.tabs.onRemoved.addListener(function(removedTabId) {
-	chrome.windows.getCurrent(null, function(aWindow) {
-		delete gTabImages[aWindow.id][removedTabId];
+	chrome.windows.getCurrent(null, function(tabRemovedWindow) {
+		delete gTabImages[tabRemovedWindow.id][removedTabId];
 	});
 });
 
@@ -57,9 +60,9 @@ chrome.extension.onMessage.addListener(
 	});
 
 function updateCurrentTab() {
-	chrome.windows.getCurrent(null, function(aWindow) {
-		chrome.tabs.getSelected(aWindow.id, function(selectedTab) {
-			chrome.tabs.captureVisibleTab(aWindow.id, {format: 'jpeg'}, function(imageUrl) {
+	chrome.windows.getCurrent(null, function(tabUpdatedWindow) {
+		chrome.tabs.getSelected(tabUpdatedWindow.id, function(selectedTab) {
+			chrome.tabs.captureVisibleTab(tabUpdatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
 				compressImage(imageUrl, function (newImageUrl){
 					if (gTabImages[selectedTab.windowId] == undefined) {
 						gTabImages[selectedTab.windowId] = {};
