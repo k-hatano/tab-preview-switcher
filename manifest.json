@@ -1,18 +1,18 @@
 {
-	"manifest_version": 2,
+	"manifest_version": 3,
 	"name": "__MSG_appName__",
 	"default_locale": "en",
-	"version": "1.4",
+	"version": "1.5",
 	"description": "__MSG_appDescription__",
-     "background": {
-        "scripts": ["background.js"],
-    	"persistent": true
+    "background": {
+        "service_worker": "background.js"
      },
 	"permissions": [
 		"windows",
 		"tabs",
 		"activeTab",
 		"storage",
+		"tabGroups",
 		"http://*/*",
 		"https://*/*",
 		"<all_urls>"
@@ -31,7 +31,7 @@
 			"run_at":"document_end"
 		}
 	],
-	"browser_action": {
+	"action": {
 		"default_icon": "tps_16.png",
 		"default_title":"Tab Preview Board",
 		"default_popup": "popup.html"
@@ -41,7 +41,16 @@
 		"open_in_tab": false
 	},
 	"web_accessible_resources": [
-		"whitepaper.png",
-		"close.png"
+		{
+			"resources": [
+				"whitepaper.png",
+				"close.png"
+			],
+			"matches": [
+				"http://*/*", 
+				"https://*/*"
+			]
+		}
+
 	]
 }

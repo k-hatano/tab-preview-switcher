@@ -1,7 +1,12 @@
 
+let gTabImages = {};
+let gJpegQuality = 32;
+let gImageDepth = 1;
+let gColumns = 3;
+let gBackgroundColor = 'gray';
+
 let gSelectedIndex = -1;
 let gMarkedIndex = -1;
-let gColumns = 3;
 
 window.onkeydown = function(event) {
 	let tabsNum = 0;
@@ -68,41 +73,52 @@ window.onkeydown = function(event) {
 	}
 };
 
-function generateTabsInWindowPromise(windowId, currentWindow) {
+function getTabElement(aTab, template, currentWindow, isSelected) {
+	let tabElement = template.cloneNode(true);
+	let idsString = aTab.windowId + '_' + aTab.id;
+	if (aTab.windowId == currentWindow.id) {
+		tabElement.setAttribute('name', 'tab_' + idsString);
+	} else {
+		tabElement.setAttribute('name', 'other_tab_' + idsString);
+	}
+	if (aTab.favIconUrl == undefined ||aTab.favIconUrl.length == 0) {
+		firstClass(tabElement, 'tab_favicon').setAttribute('src', chrome.runtime.getURL('whitepaper.png'));
+	} else {
+		firstClass(tabElement, 'tab_favicon').setAttribute('src', aTab.favIconUrl);
+	}
+	firstClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + aTab.windowId + '_' + aTab.id);
+	firstClass(tabElement, 'tab_title_span').innerText = aTab.title;
+	firstClass(tabElement, 'tab_title_span').setAttribute('title', aTab.title + "\n" + aTab.url);
+	firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
+	firstClass(tabElement, 'tab_close').setAttribute('title', chrome.i18n.getMessage("close"));
+	tabElement.setAttribute('id', 'tab_' + idsString);
+	firstClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + idsString);
+	if (isSelected) {
+		firstClass(tabElement, 'tab_cover').setAttribute('class', 'tab_cover selected');
+	}
+	firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + idsString);
+	firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
+	if (aTab.pinned == false) {
+		firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin hidden');
+	}
+	return tabElement;
+}
+
+function getGenerateTabsInWindowPromise(windowId, currentWindow, i) {
 	return new Promise((fulfill, neglect) => {
-		chrome.tabs.getAllInWindow(windowId, function(tabs){
+		chrome.tabs.query({'windowId': windowId}, function(tabs){
 			let template = elementById('tab_template');
 
 			for (let i = 0; i < tabs.length; i++) {
-				let idsString = tabs[i].windowId + '_' + tabs[i].id;
-
-				let tabElement = template.cloneNode(true);
-				if (tabs[0].windowId == currentWindow.id) {
-					tabElement.setAttribute('name', 'tab_' + idsString);
-				} else {
-					tabElement.setAttribute('name', 'other_tab_' + idsString);
-				}
-				if (tabs[i].favIconUrl == undefined || tabs[i].favIconUrl.length == 0) {
-					firstClass(tabElement, 'tab_favicon').setAttribute('src', chrome.runtime.getURL('whitepaper.png'));
-				} else {
-					firstClass(tabElement, 'tab_favicon').setAttribute('src', tabs[i].favIconUrl);
-				}
-				firstClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + tabs[i].windowId + '_' + tabs[i].id);
-				firstClass(tabElement, 'tab_title_span').innerText = tabs[i].title;
-				firstClass(tabElement, 'tab_title_span').setAttribute('title', tabs[i].title + "\n" + tabs[i].url);
-				firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
-				firstClass(tabElement, 'tab_close').setAttribute('title', chrome.i18n.getMessage("close"));
-				tabElement.setAttribute('id', 'tab_' + idsString);
-				firstClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + idsString);
+				let isSelected = false;
 				if (tabs[i].windowId == currentWindow.id && tabs[i].selected) {
-					firstClass(tabElement, 'tab_cover').setAttribute('class', 'tab_cover selected');
+					isSelected = true;
 					gSelectedIndex = i;
 				}
-				firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + idsString);
-				firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
-				if (tabs[i].pinned == false) {
-					firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin hidden');
-				}
+				
+				let tabElement = undefined;
+				tabElement = getTabElement(tabs[i], template, currentWindow, isSelected);
+
 				if (tabs[i].windowId == currentWindow.id) {
 					elementById('content').innerHTML += tabElement.outerHTML;
 				} else {
@@ -128,6 +144,7 @@ function generateTabsInWindowPromise(windowId, currentWindow) {
 			}
 
 			requestTabImages(true);
+
 			if (tabs[0].windowId == currentWindow.id) {
 				window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
 			}
@@ -136,9 +153,31 @@ function generateTabsInWindowPromise(windowId, currentWindow) {
 	});
 }
 
-function addListenersPromise(windowId) {
+function getUpdateTabGroupsPromise(windowId) {
 	return new Promise((fulfill, neglect) => {
-		chrome.tabs.getAllInWindow(windowId, function(tabs){
+		chrome.tabs.query({'windowId': windowId}, function(tabs){
+			for (let i = 0; i < tabs.length; i++) {
+				let idsString = tabs[i].windowId + '_' + tabs[i].id;
+				if (tabs[i].groupId >= 0) {
+					chrome.tabGroups.get(tabs[i].groupId, function(tabGroup){
+						firstClass(elementById('tab_' + idsString), 'tab_group_name').innerText = tabGroup.title;
+						firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
+						firstClass(elementById('tab_' + idsString), 'tab_group_name').setAttribute('class', 'tab_group_name');
+						firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group');
+						fulfill();
+					});
+				} else {
+					firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group hidden');
+					fulfill();
+				}
+			}
+		});
+	});
+}
+
+function getAddListenersPromise(windowId) {
+	return new Promise((fulfill, neglect) => {
+		chrome.tabs.query({'windowId': windowId}, function(tabs){
 			for (let i = 0; i < tabs.length; i++) {
 				let idsString = tabs[i].windowId + '_' + tabs[i].id;
 
@@ -174,31 +213,36 @@ window.onload = function() {
 	elementById('bottom_button_options').addEventListener('click', openOptionsPage);
 	elementById('content').innerHTML = '';
 
-	chrome.extension.sendMessage({name: "updateCurrentTab"}, function(response) {
-		gColumns = response.columns;
-		elementById('body').style.width = parseInt(gColumns * 192) + 'px';
-		elementById('separator').style.width = parseInt(gColumns * 192 - 32) + 'px';
-		elementById('bottom_padding').style.width = parseInt(gColumns * 192) + 'px';
-		elementById('bottom_button_div').style.width = parseInt(gColumns * 192 - 12) + 'px';
+	let updateSettingsPromise = getUpdateSettingsPromise();
+	updateSettingsPromise.then(_ => {
+		localizeMessages();
 
-		let backgroundColor = response.backgroundColor;
-		elementById('body').style.background = backgroundColor;
+		chrome.runtime.sendMessage({name: "updateCurrentTab"}, function(response) {
+			elementById('body').style.width = parseInt(gColumns * 192) + 'px';
+			elementById('separator').style.width = parseInt(gColumns * 192 - 32) + 'px';
+			elementById('bottom_padding').style.width = parseInt(gColumns * 192) + 'px';
+			elementById('bottom_button_div').style.width = parseInt(gColumns * 192 - 12) + 'px';
 
-		chrome.windows.getCurrent(null, function(currentWindow) {
-			chrome.windows.getAll(null, function(allWindows) {
-				let promises = [];
-				for (let w = 0; w < allWindows.length; w++) {
-					promises.push(generateTabsInWindowPromise(allWindows[w].id, currentWindow));
-				}
-				for (let w = 0; w < allWindows.length; w++) {
-					promises.push(addListenersPromise(allWindows[w].id));
-				}
-				Promise.all(promises);
-			});
-		});	
+			elementById('body').style.background = gBackgroundColor;
+
+			chrome.windows.getCurrent(null, function(currentWindow) {
+				chrome.windows.getAll(null, function(allWindows) {
+					let promises = [];
+					promises.push(getUpdateSettingsPromise());
+					for (let w = 0; w < allWindows.length; w++) {
+						promises.push(getGenerateTabsInWindowPromise(allWindows[w].id, currentWindow));
+					}
+					for (let w = 0; w < allWindows.length; w++) {
+						promises.push(getAddListenersPromise(allWindows[w].id));
+					}
+					for (let w = 0; w < allWindows.length; w++) {
+						promises.push(getUpdateTabGroupsPromise(allWindows[w].id));
+					}
+					Promise.all(promises);
+				});
+			});	
+		});
 	});
-
-	localizeMessages();
 };
 
 function updateTabMark() {
@@ -334,7 +378,7 @@ function firstClass(elements, className) {
 }
 
 function requestTabImages(override) {
-	chrome.extension.sendMessage({name: "requestTabImages"}, function(response) {
+	chrome.runtime.sendMessage({name: "requestTabImages"}, function(response) {
 		tabImagesUpdated(response.tabImages, override);
 	});
 }
@@ -355,7 +399,15 @@ function tabImagesUpdated(tabImages, override) {
 				}
 
 				if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
-					element.setAttribute('src', new String(value));
+					let newKey = kKey + "_" + key;
+					if (gTabImages[newKey] != undefined && override == false) {
+						element.setAttribute('src', gTabImages[newKey]);
+					} else {
+						compressImage(value, function(newImage){
+							gTabImages[newKey] = new String(newImage);
+							element.setAttribute('src', new String(newImage));
+						});
+					}
 				} else {
 					element.removeAttribute('src');
 				}
@@ -372,7 +424,7 @@ function localizeMessages() {
 	});
 }
 
-chrome.extension.onMessage.addListener(
+chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		if (request.name == "tabImageUpdated") {
 			requestTabImages(false, request.tabImages);
@@ -495,3 +547,37 @@ function removeClass(anElement, aClass) {
 	let newClass = anElement.getAttribute('class').replace(aClass, '');
 	anElement.setAttribute('class', newClass);
 }
+
+function compressImage(imageUrl, callback) {
+	let originalImage = document.createElement('img');
+	originalImage.src = imageUrl;
+
+	originalImage.onload = function() {
+		let imageSize = Math.min(originalImage.width, originalImage.height);
+		let newCanvas = document.createElement('canvas');
+		newCanvas.width = 176 * gImageDepth;
+		newCanvas.height = 150 * gImageDepth;
+		gJpegQuality = 32 * gImageDepth;
+		let ctx = newCanvas.getContext('2d');
+		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
+			0, 0, 176 * gImageDepth, 176 * gImageDepth);
+
+		callback(newCanvas.toDataURL('image/jpeg', gJpegQuality));
+	};
+}
+
+function getUpdateSettingsPromise() {
+	return new Promise((fulfill, neglect) => {
+		chrome.storage.sync.get({
+			quality: 1, // low
+			columns: 3,
+			backgroundColor: 'gray'
+		}, function(items) {
+		    gImageDepth = items.quality;
+		    gColumns = items.columns;
+		    gBackgroundColor = items.backgroundColor;
+		    fulfill();
+		});
+	});
+}
+

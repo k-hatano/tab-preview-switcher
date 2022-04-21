@@ -49,6 +49,36 @@ body.popup {
     -webkit-text-overflow: ellipsis;
 }
 
+.tab_group {
+	position: absolute;
+	max-width: 168px;
+	width: 168px;
+	left: 0px;
+	bottom:	0px;
+	height: 18px;
+	padding: 4px;
+	opacity: 75%;
+	white-space: nowrap;
+    overflow: hidden;
+	background: #00000088;
+}
+
+.tab_group_name {
+	position: absolute;
+	max-width: 168px;
+	width: 168px;
+	left: 0px;
+	bottom:	0px;
+	height: 18px;
+	padding: 4px;
+	color: black;
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	background: transparent;
+    -webkit-text-overflow: ellipsis;
+}
+
 .tab_title.entered {
 	max-width: 146px;
 	width: 146px;

@@ -5,19 +5,20 @@ let gImageDepth = 1;
 let gColumns = 3;
 let gBackgroundColor = 'gray';
 
-window.onload = function() {
-	updateSettings();
-}
+let gLastCapturedTime = 0;
 
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
+	if (Date.now() - gLastCapturedTime < 100) {
+		return;
+	}
+	console.log('onActivated captureVisibleTab');
+	gLastCapturedTime = Date.now();
 	chrome.tabs.captureVisibleTab(activatedTabInfo.windowId, {format: 'jpeg'}, function(imageUrl) {
-		compressImage(imageUrl, function (newImageUrl){
-			if (gTabImages[activatedTabInfo.windowId] == undefined) {
-				gTabImages[activatedTabInfo.windowId] = {};
-			}
-			gTabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(newImageUrl);
-			chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
-		});
+		if (gTabImages[activatedTabInfo.windowId] == undefined) {
+			gTabImages[activatedTabInfo.windowId] = [];
+		}
+		gTabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(imageUrl);
+		chrome.runtime.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 	});
 });
 
@@ -26,25 +27,30 @@ chrome.tabs.onUpdated.addListener(function(updatedTabId, changeInfo, updatedTab)
 		return;
 	}
 	chrome.windows.getCurrent(null, function(tabCreatedWindow) {
+		if (Date.now() - gLastCapturedTime < 100) {
+			return;
+		}
+		console.log('onUpdated captureVisibleTab');
+		gLastCapturedTime = Date.now();
 		chrome.tabs.captureVisibleTab(tabCreatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
-			compressImage(imageUrl, function (newImageUrl){
-				if (gTabImages[tabCreatedWindow.id] == undefined) {
-					gTabImages[tabCreatedWindow.id] = {};
-				}
-				gTabImages[tabCreatedWindow.id][updatedTabId] = new String(newImageUrl);
-				chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
-			});
+			if (gTabImages[tabCreatedWindow.id] == undefined) {
+				gTabImages[tabCreatedWindow.id] = [];
+			}
+			gTabImages[tabCreatedWindow.id][updatedTabId] = new String(imageUrl);
+			chrome.runtime.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 		});
 	});
 });
 
 chrome.tabs.onRemoved.addListener(function(removedTabId) {
 	chrome.windows.getCurrent(null, function(tabRemovedWindow) {
-		delete gTabImages[tabRemovedWindow.id][removedTabId];
+		if (gTabImages[tabRemovedWindow.id] != undefined && gTabImages[tabRemovedWindow.id][removedTabId] != undefined) {
+			delete gTabImages[tabRemovedWindow.id][removedTabId];
+		}
 	});
 });
 
-chrome.extension.onMessage.addListener(
+chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		if (request.name == "requestTabImages") {
 			sendResponse({tabImages: gTabImages});
@@ -61,36 +67,24 @@ chrome.extension.onMessage.addListener(
 
 function updateCurrentTab() {
 	chrome.windows.getCurrent(null, function(tabUpdatedWindow) {
-		chrome.tabs.getSelected(tabUpdatedWindow.id, function(selectedTab) {
-			chrome.tabs.captureVisibleTab(tabUpdatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
-				compressImage(imageUrl, function (newImageUrl){
+		chrome.tabs.query({active: true}, function(selectedTabs) {
+			if (selectedTabs != null && selectedTabs.length > 0) {
+				let selectedTab = selectedTabs[0];
+				if (Date.now() - gLastCapturedTime < 100) {
+					return;
+				}
+				console.log('updateCurrentTab captureVisibleTab');
+				gLastCapturedTime = Date.now();
+				chrome.tabs.captureVisibleTab(tabUpdatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
 					if (gTabImages[selectedTab.windowId] == undefined) {
-						gTabImages[selectedTab.windowId] = {};
+						gTabImages[selectedTab.windowId] = [];
 					}
-					gTabImages[selectedTab.windowId][selectedTab.id] = new String(newImageUrl);
-					chrome.extension.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
+					gTabImages[selectedTab.windowId][selectedTab.id] = new String(imageUrl);
+					chrome.runtime.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
 				});
-			});
+			}
 		});
 	});
-}
-
-function compressImage(imageUrl, callback) {
-	let originalImage = new Image();
-	originalImage.src = imageUrl;
-
-	originalImage.onload = function() {
-		let imageSize = Math.min(originalImage.width, originalImage.height);
-		let newCanvas = document.createElement('canvas');
-		newCanvas.width = 176 * gImageDepth;
-		newCanvas.height = 150 * gImageDepth;
-		gJpegQuality = 32 * gImageDepth;
-		let ctx = newCanvas.getContext('2d');
-		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
-			0, 0, 176 * gImageDepth, 176 * gImageDepth);
-
-		callback(newCanvas.toDataURL('image/jpeg', gJpegQuality));
-	};
 }
 
 function updateSettings() {
@@ -104,3 +98,5 @@ function updateSettings() {
 	    gBackgroundColor = items.backgroundColor;
 	});
 }
+
+updateSettings();
