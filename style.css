@@ -49,6 +49,20 @@ body.popup {
     -webkit-text-overflow: ellipsis;
 }
 
+.tab_group_cover {
+	position: absolute;
+	max-width: 168px;
+	width: 168px;
+	left: 0px;
+	bottom:	0px;
+	height: 18px;
+	padding: 4px;
+	opacity: 50%;
+	white-space: nowrap;
+    overflow: hidden;
+	background: #FFFFFF;
+}
+
 .tab_group {
 	position: absolute;
 	max-width: 168px;

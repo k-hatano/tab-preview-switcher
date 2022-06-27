@@ -8,41 +8,15 @@ let gBackgroundColor = 'gray';
 let gLastCapturedTime = 0;
 
 chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
-	if (Date.now() - gLastCapturedTime < 100) {
-		return;
-	}
-	console.log('onActivated captureVisibleTab');
-	gLastCapturedTime = Date.now();
-	chrome.tabs.captureVisibleTab(activatedTabInfo.windowId, {format: 'jpeg'}, function(imageUrl) {
-		if (gTabImages[activatedTabInfo.windowId] == undefined) {
-			gTabImages[activatedTabInfo.windowId] = [];
-		}
-		gTabImages[activatedTabInfo.windowId][activatedTabInfo.tabId] = new String(imageUrl);
-		chrome.runtime.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
-	});
+	updateCurrentTab();
 });
 
-chrome.tabs.onUpdated.addListener(function(updatedTabId, changeInfo, updatedTab) {
-	if (!updatedTab.active) {
-		return;
-	}
-	chrome.windows.getCurrent(null, function(tabCreatedWindow) {
-		if (Date.now() - gLastCapturedTime < 100) {
-			return;
-		}
-		console.log('onUpdated captureVisibleTab');
-		gLastCapturedTime = Date.now();
-		chrome.tabs.captureVisibleTab(tabCreatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
-			if (gTabImages[tabCreatedWindow.id] == undefined) {
-				gTabImages[tabCreatedWindow.id] = [];
-			}
-			gTabImages[tabCreatedWindow.id][updatedTabId] = new String(imageUrl);
-			chrome.runtime.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
-		});
-	});
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, updatedTab) {
+	updateCurrentTab();
 });
 
-chrome.tabs.onRemoved.addListener(function(removedTabId) {
+chrome.tabs.onRemoved.addListener(function(tabId) {
+	let removedTabId = tabId;
 	chrome.windows.getCurrent(null, function(tabRemovedWindow) {
 		if (gTabImages[tabRemovedWindow.id] != undefined && gTabImages[tabRemovedWindow.id][removedTabId] != undefined) {
 			delete gTabImages[tabRemovedWindow.id][removedTabId];
@@ -66,24 +40,35 @@ chrome.runtime.onMessage.addListener(
 	});
 
 function updateCurrentTab() {
-	chrome.windows.getCurrent(null, function(tabUpdatedWindow) {
-		chrome.tabs.query({active: true}, function(selectedTabs) {
-			if (selectedTabs != null && selectedTabs.length > 0) {
-				let selectedTab = selectedTabs[0];
-				if (Date.now() - gLastCapturedTime < 100) {
+	chrome.tabs.query({active: true, currentWindow: true}, function(selectedTabs) {
+		if (selectedTabs != null && selectedTabs.length > 0) {
+			let selectedTab = selectedTabs[0];
+			let selectedTabId = selectedTab.id;
+			let selectedWindowId = selectedTab.windowId;
+			if (Date.now() - gLastCapturedTime < 100) {
+				return;
+			}
+			console.log('updateCurrentTab captureVisibleTab start');
+			gLastCapturedTime = Date.now();
+			chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg'}, function(imageUrl) {
+				if (imageUrl == undefined) {
+					console.log('updateCurrentTab captureVisibleTab image is undefined ' + activatedWindowId + "_" + activatedTabId);
 					return;
 				}
-				console.log('updateCurrentTab captureVisibleTab');
-				gLastCapturedTime = Date.now();
-				chrome.tabs.captureVisibleTab(tabUpdatedWindow.id, {format: 'jpeg'}, function(imageUrl) {
-					if (gTabImages[selectedTab.windowId] == undefined) {
-						gTabImages[selectedTab.windowId] = [];
-					}
-					gTabImages[selectedTab.windowId][selectedTab.id] = new String(imageUrl);
-					chrome.runtime.sendMessage({name: "tabImageUpdated", tabImages: gTabImages}, function(ignore) { });
-				});
-			}
-		});
+				if (gTabImages[selectedWindowId] == undefined) {
+					gTabImages[selectedWindowId] = [];
+				}
+				let newTabImageString = new String(imageUrl);
+				if (newTabImageString == undefined) {
+					console.log('updateCurrentTab image is undefined ' + selectedWindowId + "_" + selectedTabId);
+					return;
+				}
+				gTabImages[selectedWindowId][selectedTabId] = newTabImageString;
+				chrome.runtime.sendMessage({name: "tabImagesUpdated", tabImages: gTabImages}, function(ignore) { });
+				console.log('updateCurrentTab captureVisibleTab captured ' + selectedWindowId + "_" + selectedTabId);
+			});
+			console.log('updateCurrentTab captureVisibleTab end');
+		}
 	});
 }
 

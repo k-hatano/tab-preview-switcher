@@ -17,6 +17,16 @@
 		"https://*/*",
 		"<all_urls>"
 	],
+	"host_permissions": [
+		"windows",
+		"tabs",
+		"activeTab",
+		"storage",
+		"tabGroups",
+		"http://*/*",
+		"https://*/*",
+		"<all_urls>"
+	],
 	"icons": {
 		"16": "tps_16.png",
 		"32": "tps_32.png",

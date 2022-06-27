@@ -87,6 +87,12 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 		firstClass(tabElement, 'tab_favicon').setAttribute('src', aTab.favIconUrl);
 	}
 	firstClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + aTab.windowId + '_' + aTab.id);
+	if (gTabImages['' + aTab.windowId + '_' + aTab.id] != undefined) {
+		console.log("initial thumbnail set : " + aTab.windowId + '_' + aTab.id);
+		firstClass(tabElement, 'tab_thumbnail').setAttribute('src', gTabImages['' + aTab.windowId + '_' + aTab.id]);
+	} else {
+		console.log("initial thumbnail not set : " + aTab.windowId + '_' + aTab.id);
+	}
 	firstClass(tabElement, 'tab_title_span').innerText = aTab.title;
 	firstClass(tabElement, 'tab_title_span').setAttribute('title', aTab.title + "\n" + aTab.url);
 	firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
@@ -143,8 +149,6 @@ function getGenerateTabsInWindowPromise(windowId, currentWindow, i) {
 				elementById('content').innerHTML += newTabElement.outerHTML;
 			}
 
-			requestTabImages(true);
-
 			if (tabs[0].windowId == currentWindow.id) {
 				window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
 			}
@@ -162,11 +166,13 @@ function getUpdateTabGroupsPromise(windowId) {
 					chrome.tabGroups.get(tabs[i].groupId, function(tabGroup){
 						firstClass(elementById('tab_' + idsString), 'tab_group_name').innerText = tabGroup.title;
 						firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
+						firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group_cover');
 						firstClass(elementById('tab_' + idsString), 'tab_group_name').setAttribute('class', 'tab_group_name');
 						firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group');
 						fulfill();
 					});
 				} else {
+					firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group hidden');
 					firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group hidden');
 					fulfill();
 				}
@@ -175,7 +181,7 @@ function getUpdateTabGroupsPromise(windowId) {
 	});
 }
 
-function getAddListenersPromise(windowId) {
+function getAddListenersPromise(windowId, isCurrent) {
 	return new Promise((fulfill, neglect) => {
 		chrome.tabs.query({'windowId': windowId}, function(tabs){
 			for (let i = 0; i < tabs.length; i++) {
@@ -190,7 +196,7 @@ function getAddListenersPromise(windowId) {
 				}
 
 				if (elementById('pin_' + idsString) != null) {
-					drawPin(elementById('pin_' + idsString), tabs[i].selected);
+					drawPin(elementById('pin_' + idsString), isCurrent && tabs[i].selected);
 				}
 
 				if (elementById('close_' + idsString) != null) {
@@ -233,12 +239,12 @@ window.onload = function() {
 						promises.push(getGenerateTabsInWindowPromise(allWindows[w].id, currentWindow));
 					}
 					for (let w = 0; w < allWindows.length; w++) {
-						promises.push(getAddListenersPromise(allWindows[w].id));
+						promises.push(getAddListenersPromise(allWindows[w].id, allWindows[w].id == currentWindow.id));
 					}
 					for (let w = 0; w < allWindows.length; w++) {
 						promises.push(getUpdateTabGroupsPromise(allWindows[w].id));
 					}
-					Promise.all(promises);
+					Promise.race(promises);
 				});
 			});	
 		});
@@ -384,32 +390,37 @@ function requestTabImages(override) {
 }
 
 function tabImagesUpdated(tabImages, override) {
-	let responseTabs = tabImages;
-	for (let k = 0; k < Object.keys(responseTabs).length; k++) {
-		let kKey = Object.keys(responseTabs)[k];
-		let kValue = Object.values(responseTabs)[k];
+	console.dir(tabImages);
+	let responseTabImages = tabImages;
+	for (let k = 0; k < Object.keys(responseTabImages).length; k++) {
+		let kKey = Object.keys(responseTabImages)[k]; // windowId
+		let kValue = Object.values(responseTabImages)[k];
 		for (let j = 0; j < Object.keys(kValue).length; j++) {
-			let key = Object.keys(kValue)[j];
+			let key = Object.keys(kValue)[j]; // tabId
 			let value = Object.values(kValue)[j];
 
 			if (kKey != null && key != null && elementById('thumbnail_' + kKey + '_' + key) != null) {
 				let element = elementById('thumbnail_' + kKey + '_' + key);
 				if (override == false && element.getAttribute('src') != undefined) {
+					// オーバーライドしない指定で、すでにサムネイル画像があればスキップ
 					continue;
 				}
 
-				if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
-					let newKey = kKey + "_" + key;
-					if (gTabImages[newKey] != undefined && override == false) {
-						element.setAttribute('src', gTabImages[newKey]);
-					} else {
-						compressImage(value, function(newImage){
-							gTabImages[newKey] = new String(newImage);
-							element.setAttribute('src', new String(newImage));
+				let newKey = kKey + "_" + key;
+				if (gTabImages[newKey] != undefined && override == false) {
+					// オーバーライドしない指定で、すでに読み込み済みのサムネイルがあればそれを指定
+					element.setAttribute('src', gTabImages[newKey]);
+				} else {
+					if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
+						compressImage(value, newKey, function(newImage, windowTabId){
+							if (newImage == undefined) {
+								console.log("newImage is undefined");
+								return;
+							}
+							gTabImages[windowTabId] = new String(newImage);
+							element.setAttribute('src', gTabImages[windowTabId]);
 						});
 					}
-				} else {
-					element.removeAttribute('src');
 				}
 			}
 		}
@@ -426,8 +437,8 @@ function localizeMessages() {
 
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		if (request.name == "tabImageUpdated") {
-			requestTabImages(false, request.tabImages);
+		if (request.name == "tabImagesUpdated") {
+			tabImagesUpdated(request.tabImages, false);
 			sendResponse(undefined);
 		} else {
 			sendResponse(undefined);
@@ -548,7 +559,7 @@ function removeClass(anElement, aClass) {
 	anElement.setAttribute('class', newClass);
 }
 
-function compressImage(imageUrl, callback) {
+function compressImage(imageUrl, windowTabId, callback) {
 	let originalImage = document.createElement('img');
 	originalImage.src = imageUrl;
 
@@ -562,7 +573,7 @@ function compressImage(imageUrl, callback) {
 		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
 			0, 0, 176 * gImageDepth, 176 * gImageDepth);
 
-		callback(newCanvas.toDataURL('image/jpeg', gJpegQuality));
+		callback(newCanvas.toDataURL('image/jpeg', gJpegQuality), windowTabId);
 	};
 }
 

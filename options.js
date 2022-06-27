@@ -35,7 +35,7 @@ function updateOptions() {
 		columns: columns,
 		backgroundColor: backgroundColor
 	}, function() {
-		chrome.extension.sendMessage({
+		chrome.runtime.sendMessage({
 			name: "updateSettings", 
 			quality: quality, 
 			columns: columns,
@@ -53,7 +53,7 @@ function restoreOptions() {
 		elementById('quality').value = items.quality;
 		elementById('columns').value = items.columns;
 		elementById('backgroundColor').value = items.backgroundColor;
-		chrome.extension.sendMessage({
+		chrome.runtime.sendMessage({
 			name: "updateSettings", 
 			quality: items.quality, 
 			columns: items.columns,
