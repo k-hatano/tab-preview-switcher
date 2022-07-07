@@ -30,6 +30,10 @@ body.popup {
 	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
 }
 
+.tab.clicking {
+	opacity: 50%;
+}
+
 .new_tab {
 	background-color: #ffff;
 }

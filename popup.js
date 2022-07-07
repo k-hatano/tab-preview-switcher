@@ -110,146 +110,129 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 	return tabElement;
 }
 
-function getGenerateTabsInWindowPromise(windowId, currentWindow, i) {
-	return new Promise((fulfill, neglect) => {
-		chrome.tabs.query({'windowId': windowId}, function(tabs){
-			let template = elementById('tab_template');
+function generateTabsInWindow(tabs, currentWindow, i) {
+	let template = elementById('tab_template');
 
-			for (let i = 0; i < tabs.length; i++) {
-				let isSelected = false;
-				if (tabs[i].windowId == currentWindow.id && tabs[i].selected) {
-					isSelected = true;
-					gSelectedIndex = i;
-				}
-				
-				let tabElement = undefined;
-				tabElement = getTabElement(tabs[i], template, currentWindow, isSelected);
+	for (let i = 0; i < tabs.length; i++) {
+		let isSelected = false;
+		if (tabs[i].windowId == currentWindow.id && tabs[i].selected) {
+			isSelected = true;
+			gSelectedIndex = i;
+		}
+		
+		let tabElement = undefined;
+		tabElement = getTabElement(tabs[i], template, currentWindow, isSelected);
 
-				if (tabs[i].windowId == currentWindow.id) {
-					elementById('content').innerHTML += tabElement.outerHTML;
-				} else {
-					elementById('separator').setAttribute('class', '');
-					elementById('content_others').setAttribute('class', '');
-					elementById('content_others').innerHTML += tabElement.outerHTML;
-				}
-			}
+		if (tabs[i].windowId == currentWindow.id) {
+			elementById('content').innerHTML += tabElement.outerHTML;
+		} else {
+			elementById('separator').setAttribute('class', '');
+			elementById('content_others').setAttribute('class', '');
+			elementById('content_others').innerHTML += tabElement.outerHTML;
+		}
+	}
 
-			// 現在のウィンドウに対しては、「新しいタブ」を表示
-			if (tabs[0].windowId == currentWindow.id) {
-				let newTabElement = template.cloneNode(true);
-				newTabElement.setAttribute('class','tab new_tab');
-				newTabElement.setAttribute('name', 'new_tab');
-				newTabElement.setAttribute('id','new_tab');
-				firstClass(newTabElement, 'tab_favicon').setAttribute('class', 'tab_favicon hidden');
-				firstClass(newTabElement, 'tab_thumbnail').setAttribute('class', 'tab_thumbnail hidden');
-				firstClass(newTabElement, 'tab_title_span').setAttribute('class', 'tab_title_span hidden');
-				firstClass(newTabElement, 'tab_close').setAttribute('id', 'tab_title_span hidden');
-				firstClass(newTabElement, 'tab_cover').innerText = '+';
-				firstClass(newTabElement, 'tab_cover').setAttribute('title', chrome.i18n.getMessage("newTab"));
-				elementById('content').innerHTML += newTabElement.outerHTML;
-			}
+	// 現在のウィンドウに対しては、「新しいタブ」を表示
+	if (tabs[0].windowId == currentWindow.id) {
+		let newTabElement = template.cloneNode(true);
+		newTabElement.setAttribute('class','tab new_tab');
+		newTabElement.setAttribute('name', 'new_tab');
+		newTabElement.setAttribute('id','new_tab');
+		firstClass(newTabElement, 'tab_favicon').setAttribute('class', 'tab_favicon hidden');
+		firstClass(newTabElement, 'tab_thumbnail').setAttribute('class', 'tab_thumbnail hidden');
+		firstClass(newTabElement, 'tab_title_span').setAttribute('class', 'tab_title_span hidden');
+		firstClass(newTabElement, 'tab_close').setAttribute('id', 'tab_title_span hidden');
+		firstClass(newTabElement, 'tab_cover').innerText = '+';
+		firstClass(newTabElement, 'tab_cover').setAttribute('title', chrome.i18n.getMessage("newTab"));
+		elementById('content').innerHTML += newTabElement.outerHTML;
+	}
 
-			if (tabs[0].windowId == currentWindow.id) {
-				window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
-			}
-		});
-		fulfill();
-	});
+	if (tabs[0].windowId == currentWindow.id) {
+		window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
+	}
 }
 
-function getUpdateTabGroupsPromise(windowId) {
-	return new Promise((fulfill, neglect) => {
-		chrome.tabs.query({'windowId': windowId}, function(tabs){
-			for (let i = 0; i < tabs.length; i++) {
-				let idsString = tabs[i].windowId + '_' + tabs[i].id;
-				if (tabs[i].groupId >= 0) {
-					chrome.tabGroups.get(tabs[i].groupId, function(tabGroup){
-						firstClass(elementById('tab_' + idsString), 'tab_group_name').innerText = tabGroup.title;
-						firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
-						firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group_cover');
-						firstClass(elementById('tab_' + idsString), 'tab_group_name').setAttribute('class', 'tab_group_name');
-						firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group');
-						fulfill();
-					});
-				} else {
-					firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group hidden');
-					firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group hidden');
-					fulfill();
-				}
-			}
-		});
-	});
+function updateTabGroups(window, tabs) {
+	for (let i = 0; i < tabs.length; i++) {
+		let idsString = tabs[i].windowId + '_' + tabs[i].id;
+		if (tabs[i].groupId >= 0) {
+			chrome.tabGroups.get(tabs[i].groupId, function(tabGroup){
+				firstClass(elementById('tab_' + idsString), 'tab_group_name').innerText = tabGroup.title;
+				firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
+				firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group_cover');
+				firstClass(elementById('tab_' + idsString), 'tab_group_name').setAttribute('class', 'tab_group_name');
+				firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group');
+			});
+		} else {
+			firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group hidden');
+			firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('class', 'tab_group hidden');
+		}
+	}
 }
 
-function getAddListenersPromise(windowId, isCurrent) {
-	return new Promise((fulfill, neglect) => {
-		chrome.tabs.query({'windowId': windowId}, function(tabs){
-			for (let i = 0; i < tabs.length; i++) {
-				let idsString = tabs[i].windowId + '_' + tabs[i].id;
+function addListenersToTabs(window, tabs, isCurrent) {
+	for (let i = 0; i < tabs.length; i++) {
+		let idsString = tabs[i].windowId + '_' + tabs[i].id;
 
-				let tabElement = elementById('tab_' + idsString);
-				elementById('tab_' + idsString).addEventListener('mouseenter', tabEntered);
-				elementById('tab_' + idsString).addEventListener('mouseleave', tabLeaved);
+		let tabElement = elementById('tab_' + idsString);
+		// elementById('tab_' + idsString).addEventListener('mousedown', tabClicked);
+		// elementById('tab_' + idsString).addEventListener('mouseup', tabReleased);
+		elementById('tab_' + idsString).addEventListener('mouseenter', tabEntered);
+		elementById('tab_' + idsString).addEventListener('mouseleave', tabLeaved);
 
-				if (elementById('cover_' + idsString) != null) {
-					elementById('cover_' + idsString).addEventListener('click', tabClicked);
-				}
+		if (elementById('cover_' + idsString) != null) {
+			elementById('cover_' + idsString).addEventListener('click', tabClicked);
+		}
 
-				if (elementById('pin_' + idsString) != null) {
-					drawPin(elementById('pin_' + idsString), isCurrent && tabs[i].selected);
-				}
+		if (elementById('pin_' + idsString) != null) {
+			drawPin(elementById('pin_' + idsString), isCurrent && tabs[i].selected);
+		}
 
-				if (elementById('close_' + idsString) != null) {
-					elementById('close_' + idsString).addEventListener('click', closeTabClicked);
-					elementById('close_' + idsString).addEventListener('mouseenter', closeTabEntered);
-					elementById('close_' + idsString).addEventListener('mouseleave', closeTabLeaved);
-				}
-			}
-			if (elementById('new_tab') != null) {
-				elementById('new_tab').addEventListener('mouseenter', newTabEntered);
-				elementById('new_tab').addEventListener('mouseleave', newTabLeaved);
-				elementById('new_tab').addEventListener('click', newTabClicked);
-			}
-		});
-		fulfill();
-	});
+		if (elementById('close_' + idsString) != null) {
+			elementById('close_' + idsString).addEventListener('click', closeTabClicked);
+			elementById('close_' + idsString).addEventListener('mouseenter', closeTabEntered);
+			elementById('close_' + idsString).addEventListener('mouseleave', closeTabLeaved);
+		}
+	}
+	if (elementById('new_tab') != null) {
+		elementById('new_tab').addEventListener('mouseenter', newTabEntered);
+		elementById('new_tab').addEventListener('mouseleave', newTabLeaved);
+		elementById('new_tab').addEventListener('click', newTabClicked);
+	}
 }
 
 window.onload = function() {
 	elementById('bottom_button_options').addEventListener('click', openOptionsPage);
 	elementById('content').innerHTML = '';
 
-	let updateSettingsPromise = getUpdateSettingsPromise();
-	updateSettingsPromise.then(_ => {
+	getUpdateSettingsPromise().then(_ => {
 		localizeMessages();
 
-		chrome.runtime.sendMessage({name: "updateCurrentTab"}, function(response) {
-			elementById('body').style.width = parseInt(gColumns * 192) + 'px';
-			elementById('separator').style.width = parseInt(gColumns * 192 - 32) + 'px';
-			elementById('bottom_padding').style.width = parseInt(gColumns * 192) + 'px';
-			elementById('bottom_button_div').style.width = parseInt(gColumns * 192 - 12) + 'px';
+		elementById('body').style.width = parseInt(gColumns * 192) + 'px';
+		elementById('separator').style.width = parseInt(gColumns * 192 - 32) + 'px';
+		elementById('bottom_padding').style.width = parseInt(gColumns * 192) + 'px';
+		elementById('bottom_button_div').style.width = parseInt(gColumns * 192 - 12) + 'px';
 
-			elementById('body').style.background = gBackgroundColor;
+		elementById('body').style.background = gBackgroundColor;
 
-			chrome.windows.getCurrent(null, function(currentWindow) {
-				chrome.windows.getAll(null, function(allWindows) {
-					let promises = [];
-					promises.push(getUpdateSettingsPromise());
-					for (let w = 0; w < allWindows.length; w++) {
-						promises.push(getGenerateTabsInWindowPromise(allWindows[w].id, currentWindow));
-					}
-					for (let w = 0; w < allWindows.length; w++) {
-						promises.push(getAddListenersPromise(allWindows[w].id, allWindows[w].id == currentWindow.id));
-					}
-					for (let w = 0; w < allWindows.length; w++) {
-						promises.push(getUpdateTabGroupsPromise(allWindows[w].id));
-					}
-					Promise.race(promises);
-				});
-			});	
+		chrome.windows.getCurrent(null, function(currentWindow) {
+			chrome.windows.getAll(null, function(allWindows) {
+				for (let w = 0; w < allWindows.length; w++) {
+					chrome.tabs.query({'windowId': allWindows[w].windowId}, function(tabs){
+						generateTabsInWindow(tabs, currentWindow);
+						addListenersToTabs(allWindows[w], tabs, allWindows[w].id == currentWindow.id);
+						updateTabGroups(allWindows[w], tabs);
+					});
+				}
+			});
 		});
+		getUpdateCurrentTabPromise();
 	});
 };
+
+window.onblur = function() {
+	getSaveTabImagesPromise();
+}
 
 function updateTabMark() {
 	let tabs = new Array();
@@ -389,8 +372,38 @@ function requestTabImages(override) {
 	});
 }
 
+function updateCurrentTab() {
+	chrome.runtime.sendMessage({name: "updateCurrentTab"}, function(response) {
+		tabImagesUpdated(response.tabImages, true);
+	});
+}
+
+function getSaveTabImagesPromise() {
+	return new Promise((fulfill, neglect) => {
+		chrome.storage.local.set({
+			tabImages: gTabImages
+		}, function(ignore) {
+			fulfill();
+		});
+	});
+}
+
+function getUpdateCurrentTabPromise() {
+	return new Promise((fulfill, neglect) => {
+		updateCurrentTab();
+		fulfill();
+	});
+}
+
+
+function getRequestTabImagesPromise(override) {
+	return new Promise((fulfill, neglect) => {
+		requestTabImages(override);
+		fulfill();
+	});
+}
+
 function tabImagesUpdated(tabImages, override) {
-	console.dir(tabImages);
 	let responseTabImages = tabImages;
 	for (let k = 0; k < Object.keys(responseTabImages).length; k++) {
 		let kKey = Object.keys(responseTabImages)[k]; // windowId
@@ -398,6 +411,10 @@ function tabImagesUpdated(tabImages, override) {
 		for (let j = 0; j < Object.keys(kValue).length; j++) {
 			let key = Object.keys(kValue)[j]; // tabId
 			let value = Object.values(kValue)[j];
+
+			if (value == null) {
+				continue;
+			}
 
 			if (kKey != null && key != null && elementById('thumbnail_' + kKey + '_' + key) != null) {
 				let element = elementById('thumbnail_' + kKey + '_' + key);
@@ -412,14 +429,8 @@ function tabImagesUpdated(tabImages, override) {
 					element.setAttribute('src', gTabImages[newKey]);
 				} else {
 					if (value != undefined && value != 'null' && value != 'undefined' && value != '') {
-						compressImage(value, newKey, function(newImage, windowTabId){
-							if (newImage == undefined) {
-								console.log("newImage is undefined");
-								return;
-							}
-							gTabImages[windowTabId] = new String(newImage);
-							element.setAttribute('src', gTabImages[windowTabId]);
-						});
+						gTabImages[windowTabId] = new String(value);
+						element.setAttribute('src', gTabImages[windowTabId]);
 					}
 				}
 			}
@@ -557,24 +568,6 @@ function addClass(anElement, aClass) {
 function removeClass(anElement, aClass) {
 	let newClass = anElement.getAttribute('class').replace(aClass, '');
 	anElement.setAttribute('class', newClass);
-}
-
-function compressImage(imageUrl, windowTabId, callback) {
-	let originalImage = document.createElement('img');
-	originalImage.src = imageUrl;
-
-	originalImage.onload = function() {
-		let imageSize = Math.min(originalImage.width, originalImage.height);
-		let newCanvas = document.createElement('canvas');
-		newCanvas.width = 176 * gImageDepth;
-		newCanvas.height = 150 * gImageDepth;
-		gJpegQuality = 32 * gImageDepth;
-		let ctx = newCanvas.getContext('2d');
-		ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
-			0, 0, 176 * gImageDepth, 176 * gImageDepth);
-
-		callback(newCanvas.toDataURL('image/jpeg', gJpegQuality), windowTabId);
-	};
 }
 
 function getUpdateSettingsPromise() {
