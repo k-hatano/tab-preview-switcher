@@ -11,7 +11,7 @@ let gDragged = false;
 let gSelectedIndex = -1;
 let gMarkedIndex = -1;
 
-window.onkeydown = function(event) {
+window.onkeydown = event => {
 	let tabsNum = 0;
 	let tabs = elementById('content_all').getElementsByClassName('tab');
 	for (let i = 0; i < tabs.length; i++) {
@@ -160,7 +160,7 @@ function updateTabGroups(tabs) {
 		if (tabs[i].groupId >= 0) {
 			let tabElement = elementById('tab_' + idsString);
 			if (tabElement != undefined) {
-				chrome.tabGroups.get(tabs[i].groupId, function(tabGroup){
+				chrome.tabGroups.get(tabs[i].groupId, tabGroup => {
 					firstClass(elementById('tab_' + idsString), 'tab_group_name').innerText = tabGroup.title;
 					firstClass(elementById('tab_' + idsString), 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
 					firstClass(elementById('tab_' + idsString), 'tab_group_cover').setAttribute('class', 'tab_group_cover');
@@ -211,13 +211,13 @@ function addListenersToTabs(window, tabs, isCurrent) {
 	}
 }
 
-window.onload = function() {
+window.onload = _ => {
 	initialize();
 };
 
-window.onblur = function() {
+window.onblur = _ => {
 	// getSaveTabImagesPromise();
-}
+};
 
 function initialize() {
 	elementById('bottom_button_options').addEventListener('click', openOptionsPage);
@@ -379,13 +379,13 @@ function firstClass(elements, className) {
 }
 
 function requestTabImages(override) {
-	chrome.runtime.sendMessage({name: "requestTabImages"}, function(response) {
+	chrome.runtime.sendMessage({name: "requestTabImages"}, response => {
 		tabImagesUpdated(response.tabImages, override);
 	});
 }
 
 function updateCurrentTab() {
-	chrome.runtime.sendMessage({name: "updateCurrentTab"}, function(response) {
+	chrome.runtime.sendMessage({name: "updateCurrentTab"}, response => {
 		tabImagesUpdated(response.tabImages, true);
 	});
 }
@@ -394,7 +394,7 @@ function getSaveTabImagesPromise() {
 	return new Promise((fulfill, neglect) => {
 		chrome.storage.local.set({
 			tabImages: gTabImages
-		}, function(ignore) {
+		}, _ => {
 			fulfill();
 		});
 	});
@@ -402,7 +402,7 @@ function getSaveTabImagesPromise() {
 
 function getRestoreTabImagesPromise() {
 	return new Promise((fulfill, neglect) => {
-		chrome.storage.local.get(['tabImages'], function(items) {
+		chrome.storage.local.get(['tabImages'], items => {
 			try {
 				let responseTabImages = items.tabImages;
 				for (let k = 0; k < Object.keys(responseTabImages).length; k++) {
@@ -474,13 +474,13 @@ function tabImagesUpdated(tabImages, override) {
 function localizeMessages() {
 	let localizables = Array.from(document.getElementsByClassName('localizable'));
 
-	localizables.forEach(function(anElement){
+	localizables.forEach(anElement => {
 		anElement.innerText = chrome.i18n.getMessage(anElement.innerText);
 	});
 }
 
 chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) {
+	(request, sender, sendResponse) => {
 		if (request.name == "tabImagesUpdated") {
 			tabImagesUpdated(request.tabImages, false);
 			sendResponse(undefined);
@@ -549,7 +549,7 @@ function tabMoved(event) {
 	let newIndex = x + y * gColumns;
 	
 	if (newIndex != gDraggingIndex) {
-		chrome.tabs.move(idSet.tabId, {index: newIndex}, function(movedTab){
+		chrome.tabs.move(idSet.tabId, {index: newIndex}, movedTab => {
 			let newIndex = movedTab.index;
 			let movingTab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 			let destinationTab;
@@ -617,12 +617,12 @@ function closeTabLeaved(event) {
 }
 
 function activateTab(windowId, tabId) {
-	chrome.windows.update(windowId, {focused: true}, function(ignore){});
-	chrome.tabs.update(tabId, {active: true}, function(ignore){});
+	chrome.windows.update(windowId, {focused: true}, ignore => {});
+	chrome.tabs.update(tabId, {active: true}, ignore => {});
 }
 
 function closeTab(windowId, tabId) {
-	chrome.tabs.remove(tabId, function(ignore){});
+	chrome.tabs.remove(tabId, ignore => {});
 }
 
 function newTabClicked(event) {
@@ -630,7 +630,7 @@ function newTabClicked(event) {
 }
 
 function createNewTab() {
-	chrome.tabs.create({active: true}, function(ignore){});
+	chrome.tabs.create({active: true}, ignore => {});
 }
 
 function openOptionsPage() {
@@ -671,7 +671,7 @@ function getUpdateSettingsPromise() {
 			quality: 1, // low
 			columns: 3,
 			backgroundColor: 'gray'
-		}, function(items) {
+		}, items => {
 		    gImageDepth = parseInt(items.quality);
 		    gColumns = parseInt(items.columns);
 		    gBackgroundColor = items.backgroundColor;

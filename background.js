@@ -7,15 +7,15 @@ let gBackgroundColor = 'gray';
 
 let gLastCapturedTime = 0;
 
-chrome.tabs.onActivated.addListener(function(activatedTabInfo) {
+chrome.tabs.onActivated.addListener(activatedTabInfo => {
 	updateCurrentTab(activatedTabInfo);
 });
 
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, updatedTab) {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, updatedTab) => {
 	updateCurrentTab(updatedTab);
 });
 
-chrome.tabs.onRemoved.addListener(function(tabId) {
+chrome.tabs.onRemoved.addListener(tabId => {
 	let removedTabId = tabId;
 	chrome.windows.getCurrent(null, function(tabRemovedWindow) {
 		if (gTabImages[tabRemovedWindow.id] != undefined && gTabImages[tabRemovedWindow.id][removedTabId] != undefined) {
@@ -25,7 +25,7 @@ chrome.tabs.onRemoved.addListener(function(tabId) {
 });
 
 chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) {
+	(request, sender, sendResponse) => {
 		if (request.name == "requestTabImages") {
 			sendResponse({tabImages: gTabImages});
 		} else if (request.name == "updateCurrentTab") {
@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener(
 	});
 
 function updateCurrentTab() {
-	chrome.tabs.query({active: true, currentWindow: true}, function(selectedTabs) {
+	chrome.tabs.query({active: true, currentWindow: true}, selectedTabs => {
 		if (selectedTabs != null && selectedTabs.length > 0) {
 			updateTab(selectedTabs[0]);
 		}
@@ -78,7 +78,7 @@ function updateSettings() {
 		quality: 1, // low
 		columns: 3,
 		backgroundColor: 'gray'
-	}, function(items) {
+	}, items => {
 	    gImageDepth = parseInt(items.quality);
 	    gColumns = parseInt(items.columns);
 	    gBackgroundColor = items.backgroundColor;
@@ -88,7 +88,7 @@ function updateSettings() {
 function compressImage(imageUrl, windowTabId, callback) {
 	fetch(imageUrl)
 		.then(response => response.blob())
-		.then(function(blob) {
+		.then(blob => {
 			createImageBitmap(blob).then(originalImage => {
 				let imageSize = Math.min(originalImage.width, originalImage.height);
 				let newCanvas = new OffscreenCanvas(176 * gImageDepth, 176 * gImageDepth);

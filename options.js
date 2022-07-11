@@ -40,7 +40,7 @@ function updateOptions() {
 			quality: quality, 
 			columns: columns,
 			backgroundColor: backgroundColor
-		}, function(ignore){});
+		}, ignore => {});
 	});
 }
 
@@ -49,7 +49,7 @@ function restoreOptions() {
 		quality: 1, // low
 		columns: 3,
 		backgroundColor: 'gray'
-	}, function(items) {
+	}, items => {
 		elementById('quality').value = items.quality;
 		elementById('columns').value = items.columns;
 		elementById('backgroundColor').value = items.backgroundColor;
@@ -58,16 +58,16 @@ function restoreOptions() {
 			quality: items.quality, 
 			columns: items.columns,
 			backgroundColor: items.backgroundColor
-		}, function(ignore){});
+		}, ignore => {});
 		changePreviewColor(items.backgroundColor);
 	});
+}
+
+function elementById(elementId) {
+	return document.getElementById(elementId);
 }
 
 document.addEventListener('DOMContentLoaded', optionLoaded);
 elementById('quality').addEventListener('change', updateQuality);
 elementById('columns').addEventListener('change', updateOptions);
 elementById('backgroundColor').addEventListener('change', updateOptions);
-
-function elementById(elementId) {
-	return document.getElementById(elementId);
-}
