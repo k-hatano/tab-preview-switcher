@@ -20,18 +20,18 @@ body.popup {
 	margin: 8px;
 	padding: 0px;
 	background-color: #fff;
-	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+	box-shadow: 4px 4px 4px rgba(0.5, 0.5, 0.5, 0.2);
 	position: relative;
 	display: inline-block;
 	float: left;
 }
 
-.tab.entered {
-	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
+.tab.dragging, .tab.entered.dragging {
+	box-shadow: 4px 4px 12px rgba(0.5, 0.5, 0.5, 0.5);
 }
 
-.tab.clicking {
-	opacity: 50%;
+.tab.entered {
+	box-shadow: 4px 4px 8px rgba(0.5, 0.5, 0.5, 0.4);
 }
 
 .new_tab {
@@ -172,6 +172,13 @@ body.popup {
 	text-align: center;
 	vertical-align: middle;
    	user-select: none;
+}
+
+.tab_cover.dragging {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 1000;
 }
 
 .selected {

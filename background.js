@@ -54,11 +54,9 @@ function updateTab(aTab) {
 	if (Date.now() - gLastCapturedTime < 100) {
 		return;
 	}
-	console.log('updateCurrentTab captureVisibleTab start');
 	gLastCapturedTime = Date.now();
-	chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg', quality: 5}, function(imageUrl) {
+	chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg', quality: gJpegQuality}, function(imageUrl) {
 		if (imageUrl == undefined) {
-			console.log('updateCurrentTab captureVisibleTab image is undefined ' + selectedWindowId + "_" + selectedTabId);
 			return;
 		}
 		if (gTabImages[selectedWindowId] == undefined) {
@@ -66,16 +64,13 @@ function updateTab(aTab) {
 		}
 		let newTabImageString = new String(imageUrl);
 		if (newTabImageString == undefined) {
-			console.log('updateCurrentTab image is undefined ' + selectedWindowId + "_" + selectedTabId);
 			return;
 		}
-		compressImage(imageUrl, selectedWindowId + "_" + selectedTabId, function(){
-			gTabImages[selectedWindowId][selectedTabId] = newTabImageString;
+		compressImage(imageUrl, selectedWindowId + "_" + selectedTabId, function(compressedImageString){
+			gTabImages[selectedWindowId][selectedTabId] = compressedImageString;
 			chrome.runtime.sendMessage({name: "tabImagesUpdated", tabImages: gTabImages}, function(ignore) { });
-			console.log('updateCurrentTab captureVisibleTab captured ' + selectedWindowId + "_" + selectedTabId);	
 		})
 	});
-	console.log('updateCurrentTab captureVisibleTab end');
 }
 
 function updateSettings() {
@@ -84,8 +79,8 @@ function updateSettings() {
 		columns: 3,
 		backgroundColor: 'gray'
 	}, function(items) {
-	    gImageDepth = items.quality;
-	    gColumns = items.columns;
+	    gImageDepth = parseInt(items.quality);
+	    gColumns = parseInt(items.columns);
 	    gBackgroundColor = items.backgroundColor;
 	});
 }
@@ -94,24 +89,24 @@ function compressImage(imageUrl, windowTabId, callback) {
 	fetch(imageUrl)
 		.then(response => response.blob())
 		.then(function(blob) {
-			console.dir(blob);
 			createImageBitmap(blob).then(originalImage => {
-				console.dir(originalImage);
 				let imageSize = Math.min(originalImage.width, originalImage.height);
-				let newCanvas = new OffscreenCanvas(imageSize, imageSize);
-				newCanvas.width = 176 * gImageDepth;
-				newCanvas.height = 150 * gImageDepth;
+				let newCanvas = new OffscreenCanvas(176 * gImageDepth, 176 * gImageDepth);
 				gJpegQuality = 32 * gImageDepth;
 				let ctx = newCanvas.getContext('2d');
 				ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
 					0, 0, 176 * gImageDepth, 176 * gImageDepth);
 
 				newCanvas.convertToBlob().then(blob => {
-					const resultUrl = (new FileReader()).readAsDataURL(blob);
-					callback(resultUrl, windowTabId);
+					const reader = new FileReader();
+					reader.onload = _ => {
+						callback(reader.result, windowTabId);
+					}; 
+					reader.readAsDataURL(blob);
 				})
 			});
 		});
 }
 
 updateSettings();
+
