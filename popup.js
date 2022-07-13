@@ -193,6 +193,7 @@ function addListenersToTabs(window, tabs) {
 				elementById('clickable_' + idsString).addEventListener('mousedown', tabPressed);
 				elementById('clickable_' + idsString).addEventListener('mouseup', tabReleased);
 				elementById('clickable_' + idsString).addEventListener('mousemove', tabMoved);
+				elementById('clickable_' + idsString).addEventListener('mouseleave', tabOut);
 			}
 		}
 
@@ -531,6 +532,20 @@ function tabReleased(event) {
 	removeClass(tab, 'dragging');
 
 	if (gDragged) {
+		chrome.tabs.query({}, tabs => {
+			updateTabGroups(tabs);
+		});
+	}
+}
+
+function tabOut(evet) {
+	if (gDragged) {
+		let idSet = windowTabId(event.currentTarget.id, 'clickable');
+		let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+		gDraggingTab = undefined;
+		removeClass(event.currentTarget, 'dragging');
+		removeClass(tab, 'dragging');
+		
 		chrome.tabs.query({}, tabs => {
 			updateTabGroups(tabs);
 		});
