@@ -59,6 +59,9 @@ function updateTab(aTab, save) {
 		if (imageUrl == undefined) {
 			return;
 		}
+		if (gTabImages == undefined) {
+			gTabImages = {};
+		}
 		if (gTabImages[selectedWindowId] == undefined) {
 			gTabImages[selectedWindowId] = {};
 		}

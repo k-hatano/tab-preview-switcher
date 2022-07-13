@@ -266,3 +266,16 @@ body.popup {
 	height: 20px;
 	vertical-align: bottom;
 }
+
+.opaque {
+	opacity: 0.75;
+}
+
+.translucent {
+	opacity: 0.25;
+}
+
+.transparent {
+	opacity: 0;
+}
+

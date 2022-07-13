@@ -96,6 +96,7 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 		
 	}
 	firstClass(tabElement, 'tab_title_span').innerText = aTab.title;
+	firstClass(tabElement, 'tab_title_span').setAttribute('id', 'tab_title_span_' + aTab.windowId + '_' + aTab.id);
 	firstClass(tabElement, 'tab_title_span').setAttribute('title', aTab.title + "\n" + aTab.url);
 	firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
 	firstClass(tabElement, 'tab_close').setAttribute('title', chrome.i18n.getMessage("close"));
@@ -108,7 +109,7 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 	firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + idsString);
 	firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 	if (aTab.pinned == false) {
-		firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin hidden');
+		firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
 	}
 	return tabElement;
 }
@@ -194,6 +195,13 @@ function addListenersToTabs(window, tabs) {
 				elementById('clickable_' + idsString).addEventListener('mouseup', tabReleased);
 				elementById('clickable_' + idsString).addEventListener('mousemove', tabMoved);
 				elementById('clickable_' + idsString).addEventListener('mouseleave', tabOut);
+
+				elementById('tab_title_span_' + idsString).addEventListener('mouseenter', mouseEnterIntoTab);
+				elementById('tab_title_span_' + idsString).addEventListener('mouseleave', mouseLeaveFromTab);
+				elementById('pin_' + idsString).addEventListener('mouseenter', mouseEnterIntoTab);
+				elementById('pin_' + idsString).addEventListener('mouseleave', mouseLeaveFromTab);
+				elementById('pin_' + idsString).addEventListener('click', pinClicked);
+
 			}
 		}
 
@@ -632,6 +640,49 @@ function closeTabLeaved(event) {
 	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close');
 }
+
+function mouseEnterIntoTab(event) {
+	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)$/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+
+	if (elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin translucent');
+	} else {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin opaque');
+	}
+}
+
+function mouseLeaveFromTab(event) {
+	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+
+	if (elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin transparent');
+	} else {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin');
+	}
+}
+function pinClicked(event) {
+	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)/);
+	var windowId = parseInt(matches[1]);
+	var tabId = parseInt(matches[2]);
+
+	if (elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		chrome.tabs.update(tabId, {pinned: true}, e => {
+			constructContentOfPopup(); 
+		});
+	} else {
+		chrome.tabs.update(tabId, {pinned: false}, e => {
+			constructContentOfPopup(); 
+		});
+	}
+}
+
 
 function activateTab(windowId, tabId) {
 	chrome.windows.update(windowId, {focused: true}, ignore => {});
