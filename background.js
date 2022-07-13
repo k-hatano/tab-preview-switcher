@@ -8,16 +8,16 @@ let gBackgroundColor = 'gray';
 let gLastCapturedTime = 0;
 
 chrome.tabs.onActivated.addListener(activatedTabInfo => {
-	updateCurrentTab(activatedTabInfo);
+	updateCurrentTab(activatedTabInfo, false);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, updatedTab) => {
-	updateCurrentTab(updatedTab);
+	updateCurrentTab(updatedTab, false);
 });
 
 chrome.tabs.onRemoved.addListener(tabId => {
 	let removedTabId = tabId;
-	chrome.windows.getCurrent(null, function(tabRemovedWindow) {
+	chrome.windows.getCurrent(null, tabRemovedWindow => {
 		if (gTabImages[tabRemovedWindow.id] != undefined && gTabImages[tabRemovedWindow.id][removedTabId] != undefined) {
 			delete gTabImages[tabRemovedWindow.id][removedTabId];
 		}
@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener(
 		if (request.name == "requestTabImages") {
 			sendResponse({tabImages: gTabImages});
 		} else if (request.name == "updateCurrentTab") {
-			updateCurrentTab();
+			updateCurrentTab(false);
 			sendResponse({tabImages: gTabImages, columns: gColumns, backgroundColor: gBackgroundColor});
 		} else if (request.name == "updateSettings") {
 			updateSettings();
@@ -39,15 +39,15 @@ chrome.runtime.onMessage.addListener(
 		}
 	});
 
-function updateCurrentTab() {
+function updateCurrentTab(save) {
 	chrome.tabs.query({active: true, currentWindow: true}, selectedTabs => {
 		if (selectedTabs != null && selectedTabs.length > 0) {
-			updateTab(selectedTabs[0]);
+			updateTab(selectedTabs[0], save);
 		}
 	});
 }
 
-function updateTab(aTab) {
+function updateTab(aTab, save) {
 	let selectedTab = aTab;
 	let selectedTabId = selectedTab.id;
 	let selectedWindowId = selectedTab.windowId;
@@ -55,20 +55,23 @@ function updateTab(aTab) {
 		return;
 	}
 	gLastCapturedTime = Date.now();
-	chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg', quality: gJpegQuality}, function(imageUrl) {
+	chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg', quality: gJpegQuality}, imageUrl => {
 		if (imageUrl == undefined) {
 			return;
 		}
 		if (gTabImages[selectedWindowId] == undefined) {
-			gTabImages[selectedWindowId] = [];
+			gTabImages[selectedWindowId] = {};
 		}
 		let newTabImageString = new String(imageUrl);
 		if (newTabImageString == undefined) {
 			return;
 		}
-		compressImage(imageUrl, selectedWindowId + "_" + selectedTabId, function(compressedImageString){
+		compressImage(imageUrl, selectedWindowId + "_" + selectedTabId, compressedImageString => {
 			gTabImages[selectedWindowId][selectedTabId] = compressedImageString;
-			chrome.runtime.sendMessage({name: "tabImagesUpdated", tabImages: gTabImages}, function(ignore) { });
+			chrome.runtime.sendMessage({name: "tabImagesUpdated", tabImages: gTabImages}, ignore => {});
+			if (save) {
+				getSaveTabImagesPromise();
+			}
 		})
 	});
 }
@@ -108,5 +111,42 @@ function compressImage(imageUrl, windowTabId, callback) {
 		});
 }
 
-updateSettings();
 
+
+function getSaveTabImagesPromise() {
+	return new Promise((fulfill, neglect) => {
+		chrome.storage.local.set({
+			tabImages: gTabImages
+		}, _ => {
+			fulfill();
+		});
+	});
+}
+
+function getRestoreTabImagesPromise() {
+	console.log("getRestoreTabImagesPromise");
+	return new Promise((fulfill, neglect) => {
+		chrome.storage.local.get(['tabImages'], items => {
+			try {
+				gTabImages = items.tabImages;
+				fulfill();
+			} catch (error) {
+				console.dir(error);
+				neglect();
+			}
+		});
+	});
+}
+
+function countAvailableImages() {
+	let result = 0;
+	for (let w in gTabImages) {
+		result += gTabImages[w].length;
+	}
+	return result;
+}
+
+updateSettings();
+if (countAvailableImages() <= 1) {
+	getRestoreTabImagesPromise();
+}

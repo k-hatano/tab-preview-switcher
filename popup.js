@@ -104,6 +104,7 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 	if (isSelected) {
 		firstClass(tabElement, 'tab_cover').setAttribute('class', 'tab_cover selected');
 	}
+	firstClass(tabElement, 'tab_clickable').setAttribute('id', 'clickable_' + idsString);
 	firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + idsString);
 	firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 	if (aTab.pinned == false) {
@@ -149,9 +150,7 @@ function generateTabsInWindow(tabs, currentWindow) {
 		elementById('content').innerHTML += newTabElement.outerHTML;
 	}
 
-	if (tabs[0].windowId == currentWindow.id) {
-		window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
-	}
+	window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
 }
 
 function updateTabGroups(tabs) {
@@ -179,7 +178,7 @@ function updateTabGroups(tabs) {
 	}
 }
 
-function addListenersToTabs(window, tabs, isCurrent) {
+function addListenersToTabs(window, tabs) {
 	for (let i = 0; i < tabs.length; i++) {
 		let idsString = tabs[i].windowId + '_' + tabs[i].id;
 
@@ -187,15 +186,18 @@ function addListenersToTabs(window, tabs, isCurrent) {
 		elementById('tab_' + idsString).addEventListener('mouseenter', tabEntered);
 		elementById('tab_' + idsString).addEventListener('mouseleave', tabLeaved);
 
-		if (elementById('cover_' + idsString) != null) {
-			elementById('cover_' + idsString).addEventListener('click', tabClicked);
-			elementById('cover_' + idsString).addEventListener('mousedown', tabPressed);
-			elementById('cover_' + idsString).addEventListener('mouseup', tabReleased);
-			elementById('cover_' + idsString).addEventListener('mousemove', tabMoved);
+		if (elementById('clickable_' + idsString) != null) {
+			elementById('clickable_' + idsString).addEventListener('click', tabClicked);
+
+			if (window.id == tabs[i].windowId) {
+				elementById('clickable_' + idsString).addEventListener('mousedown', tabPressed);
+				elementById('clickable_' + idsString).addEventListener('mouseup', tabReleased);
+				elementById('clickable_' + idsString).addEventListener('mousemove', tabMoved);
+			}
 		}
 
 		if (elementById('pin_' + idsString) != null) {
-			drawPin(elementById('pin_' + idsString), isCurrent && tabs[i].selected);
+			drawPin(elementById('pin_' + idsString), window.id == tabs[i].windowId && tabs[i].selected);
 		}
 
 		if (elementById('close_' + idsString) != null) {
@@ -237,7 +239,7 @@ function initialize() {
 		chrome.windows.getCurrent(null, currentWindow => {
 			chrome.tabs.query({}, tabs => {
 				generateTabsInWindow(tabs, currentWindow);
-				addListenersToTabs(currentWindow, tabs, tabs[0].windowId == currentWindow.id);
+				addListenersToTabs(currentWindow, tabs);
 				updateTabGroups(tabs);
 			});
 		});
@@ -502,13 +504,13 @@ function tabClicked(event) {
 	if (gDragged) {
 		return;
 	}
-	let idSet = windowTabId(event.currentTarget.id, 'cover');
+	let idSet = windowTabId(event.currentTarget.id, 'clickable');
 	activateTab(idSet.windowId, idSet.tabId);
 	window.close();
 }
 
 function tabPressed(event) {
-	let idSet = windowTabId(event.currentTarget.id, 'cover');
+	let idSet = windowTabId(event.currentTarget.id, 'clickable');
 	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	gDraggingTab = idSet.windowId + '_' + idSet.tabId;
 
@@ -522,7 +524,7 @@ function tabPressed(event) {
 }
 
 function tabReleased(event) {
-	let idSet = windowTabId(event.currentTarget.id, 'cover');
+	let idSet = windowTabId(event.currentTarget.id, 'clickable');
 	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	gDraggingTab = undefined;
 	removeClass(event.currentTarget, 'dragging');
@@ -539,8 +541,8 @@ function tabMoved(event) {
 	if (gDraggingTab == undefined) {
 		return;
 	}
-	let idSet = windowTabId(event.currentTarget.id, 'cover');
-	let tab = elementById('cover_' + idSet.windowId + '_' + idSet.tabId);
+	let idSet = windowTabId(event.currentTarget.id, 'clickable');
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	if (gDraggingTab != idSet.windowId + '_' + idSet.tabId) {
 		return;
 	}
