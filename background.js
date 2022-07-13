@@ -114,8 +114,6 @@ function compressImage(imageUrl, windowTabId, callback) {
 		});
 }
 
-
-
 function getSaveTabImagesPromise() {
 	return new Promise((fulfill, neglect) => {
 		chrome.storage.local.set({
@@ -134,7 +132,6 @@ function getRestoreTabImagesPromise() {
 				gTabImages = items.tabImages;
 				fulfill();
 			} catch (error) {
-				console.dir(error);
 				neglect();
 			}
 		});
