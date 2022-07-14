@@ -8,6 +8,9 @@
   "newTab": {
     "message": "New Tab"
   },
+  "newTabInThisGroup": {
+    "message": "New Tab In This Group"
+  },
   "pinnedTab": {
     "message": "Pinned Tab"
   },

@@ -8,6 +8,9 @@
   "newTab": {
     "message": "新しいタブ"
   },
+  "newTabInThisGroup": {
+    "message": "このグループにタブを追加"
+  },
   "pinnedTab": {
     "message": "固定されたタブ"
   },

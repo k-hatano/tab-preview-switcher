@@ -144,6 +144,9 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 	
 	firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
 	firstClass(tabElement, 'tab_close').setAttribute('title', chrome.i18n.getMessage("close"));
+	
+	firstClass(tabElement, 'tab_group_add').setAttribute('id', 'group_add_' + idsString);
+	firstClass(tabElement, 'tab_group_add').setAttribute('title', chrome.i18n.getMessage("newTabInThisGroup"));
 
 	tabElement.setAttribute('id', 'tab_' + idsString);
 
@@ -201,6 +204,18 @@ function generateTabsInWindow(tabs, currentWindow) {
 	}
 
 	window.scrollTo(0, 192 * Math.floor(gSelectedIndex / gColumns) - 192);
+}
+
+function uodateTabPins(tabs) {
+	for (let i = 0; i < tabs.length; i++) {
+		let idsString = tabs[i].windowId + '_' + tabs[i].id;
+		let tabElement = elementById('tab_' + idsString);
+		if (tabs[i].pinned) {
+			firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
+		} else {
+			firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin');
+		}
+	}
 }
 
 function updateTabGroups(tabs) {
@@ -638,6 +653,14 @@ function tabEntered(event) {
 	addClass(tab, 'entered');
 	addClass(firstClass(tab, 'tab_title'), 'entered');
 	removeClass(firstClass(tab, 'tab_close'), 'hidden');
+	removeClass(firstClass(tab, 'tab_group_add'), 'hidden');
+
+	if (elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin translucent');
+	} else {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin opaque');
+	}
 }
 
 function tabLeaved(event) {
@@ -647,6 +670,14 @@ function tabLeaved(event) {
 	removeClass(tab, 'entered');
 	removeClass(firstClass(tab, 'tab_title'), 'entered');
 	addClass(firstClass(tab, 'tab_close'), 'hidden');
+	addClass(firstClass(tab, 'tab_group_add'), 'hidden');
+	
+	if (elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
+		|| elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin transparent');
+	} else {
+		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin');
+	}
 }
 
 function newTabEntered(event) {
@@ -698,21 +729,42 @@ function mouseLeaveFromTab(event) {
 		elementById('pin_' + windowId + '_' + tabId).setAttribute('class', 'tab_pin');
 	}
 }
+
 function pinClicked(event) {
 	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)/);
 	var windowId = parseInt(matches[1]);
 	var tabId = parseInt(matches[2]);
 
+	let pinnedAfter = false;
 	if (elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('translucent') > 0
 		|| elementById('pin_' + windowId + '_' + tabId).getAttribute('class').indexOf('transparent') > 0) {
-		chrome.tabs.update(tabId, {pinned: true}, e => {
-			constructContentOfPopup(); 
-		});
-	} else {
-		chrome.tabs.update(tabId, {pinned: false}, e => {
-			constructContentOfPopup(); 
-		});
+		pinnedAfter = true;
 	}
+
+	chrome.tabs.get(tabId, aTab => {
+		let originalIndex = aTab.index;
+		chrome.tabs.update(tabId, {pinned: pinnedAfter}, bTab => {
+			let movingTab = elementById('tab_' + windowId + '_' + tabId);
+			if (pinnedAfter) {
+				firstClass(movingTab, 'tab_pin').setAttribute('class', 'tab_pin opaque');
+			} else {
+				firstClass(movingTab, 'tab_pin').setAttribute('class', 'tab_pin translucent');
+			}
+
+			let destinationIndex = bTab.index;
+			let destinationTab;
+			if (originalIndex < destinationIndex) {
+				destinationTab = elementById('content').children[destinationIndex + 1];
+			} else {
+				destinationTab = elementById('content').children[destinationIndex];
+			}
+			destinationTab.before(movingTab);
+			chrome.tabs.query({}, tabs => {
+				updateTabGroups(tabs);
+			});
+		});
+	})
+		
 }
 
 // タブ操作
