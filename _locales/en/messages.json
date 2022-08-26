@@ -12,7 +12,10 @@
     "message": "New Tab In This Group"
   },
   "pinnedTab": {
-    "message": "Pinned Tab"
+    "message": "Pinned Tab - Click to Unpin"
+  },
+  "unpinnedTab": {
+    "message": "Click to Pin Tab"
   },
   "otherWindows": {
     "message": "Other Windows"
@@ -43,6 +46,9 @@
   },
   "backgroundColor": {
     "message": "Background Color"
+  },
+  "closeButtonsOnPinnedTabs": {
+    "message": "Show &quot;Close&quot; Buttons on Pinned Tabs"
   },
   "change_will_take_effect": {
     "message": "The change will take effect to the previews made after now."

@@ -12,7 +12,10 @@
     "message": "このグループにタブを追加"
   },
   "pinnedTab": {
-    "message": "固定されたタブ"
+    "message": "固定されたタブ - クリックで固定解除"
+  },
+  "unpinnedTab": {
+    "message": "クリックでタブ固定"
   },
   "otherWindows": {
     "message": "他のウィンドウ"
@@ -43,6 +46,9 @@
   },
   "backgroundColor": {
     "message": "背景色"
+  },
+  "closeButtonsOnPinnedTabs": {
+    "message": "固定されたタブにも「閉じる」ボタンを表示"
   },
   "change_will_take_effect": {
     "message": "変更は、次回以降に作成されるプレビューに対して反映されます。"

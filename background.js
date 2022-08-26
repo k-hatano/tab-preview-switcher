@@ -8,7 +8,7 @@ let gBackgroundColor = 'gray';
 let gLastCapturedTime = 0;
 
 chrome.tabs.onActivated.addListener(activatedTabInfo => {
-	updateCurrentTab(activatedTabInfo, false);
+	updateCurrentTab(activatedTabInfo, true);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, updatedTab) => {
@@ -21,6 +21,7 @@ chrome.tabs.onRemoved.addListener(tabId => {
 		if (gTabImages[tabRemovedWindow.id] != undefined && gTabImages[tabRemovedWindow.id][removedTabId] != undefined) {
 			delete gTabImages[tabRemovedWindow.id][removedTabId];
 		}
+		triageTabImages();
 	});
 });
 
@@ -38,6 +39,31 @@ chrome.runtime.onMessage.addListener(
 			sendResponse(undefined);
 		}
 	});
+
+function triageTabImages() {
+	console.log("triageTabImages");
+	chrome.tabs.query({}, tabs => {
+		let newImages = {};
+		for (let k = 0; k < Object.keys(gTabImages).length; k++) {
+			let kKey = Object.keys(gTabImages)[k]; // windowId
+			let kValue = Object.values(gTabImages)[k];
+			for (let j = 0; j < Object.keys(kValue).length; j++) {
+				let key = Object.keys(kValue)[j]; // tabId
+				let value = Object.values(kValue)[j];
+
+				if (gTabImages[kKey] != undefined && gTabImages[kKey][key] != undefined) {
+					if (newImages[kKey] == undefined) {
+						newImages[kKey] = {};
+					}
+
+					newImages[kKey][key] = gTabImages[kKey][key];
+				}
+			}
+		}
+		gTabImages = newImages;
+		getSaveTabImagesPromise();
+	});
+}
 
 function updateCurrentTab(save) {
 	chrome.tabs.query({active: true, currentWindow: true}, selectedTabs => {
@@ -70,6 +96,12 @@ function updateTab(aTab, save) {
 			return;
 		}
 		compressImage(imageUrl, selectedWindowId + "_" + selectedTabId, compressedImageString => {
+			if (gTabImages == undefined) {
+				gTabImages = {};
+			}
+			if (gTabImages[selectedWindowId] == undefined) {
+				gTabImages[selectedWindowId] = {};
+			}
 			gTabImages[selectedWindowId][selectedTabId] = compressedImageString;
 			chrome.runtime.sendMessage({name: "tabImagesUpdated", tabImages: gTabImages}, ignore => {});
 			if (save) {
@@ -116,25 +148,47 @@ function compressImage(imageUrl, windowTabId, callback) {
 
 function getSaveTabImagesPromise() {
 	return new Promise((fulfill, neglect) => {
-		chrome.storage.local.set({
-			tabImages: gTabImages
-		}, _ => {
-			fulfill();
-		});
+		try {
+			chrome.storage.local.set({
+				tabImages: gTabImages
+			}, _ => {
+				fulfill();
+			});
+		} catch (error) {
+			neglect();
+		}
 	});
 }
 
 function getRestoreTabImagesPromise() {
 	console.log("getRestoreTabImagesPromise");
 	return new Promise((fulfill, neglect) => {
-		chrome.storage.local.get(['tabImages'], items => {
-			try {
-				gTabImages = items.tabImages;
-				fulfill();
-			} catch (error) {
-				neglect();
-			}
-		});
+		try {
+			chrome.storage.local.get(['tabImages'], items => {
+				try {
+					for (let k = 0; k < Object.keys(items.tabImages).length; k++) {
+						let kKey = Object.keys(items.tabImages)[k]; // windowId
+						let kValue = Object.values(items.tabImages)[k];
+						for (let j = 0; j < Object.keys(kValue).length; j++) {
+							let key = Object.keys(kValue)[j]; // tabId
+							let value = Object.values(kValue)[j];
+							if (gTabImages == undefined) {
+								gTabImages = {};
+							}
+							if (gTabImages[kKey] == undefined) {
+								gTabImages[kKey] = {};
+							}
+							gTabImages[kKey][key] = value;
+						}
+					}
+					fulfill();
+				} catch (error) {
+					neglect();
+				}
+			});
+		} catch (error) {
+			neglect();
+		}
 	});
 }
 
