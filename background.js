@@ -41,7 +41,6 @@ chrome.runtime.onMessage.addListener(
 	});
 
 function triageTabImages() {
-	console.log("triageTabImages");
 	chrome.tabs.query({}, tabs => {
 		let newImages = {};
 		for (let k = 0; k < Object.keys(gTabImages).length; k++) {
@@ -161,7 +160,6 @@ function getSaveTabImagesPromise() {
 }
 
 function getRestoreTabImagesPromise() {
-	console.log("getRestoreTabImagesPromise");
 	return new Promise((fulfill, neglect) => {
 		try {
 			chrome.storage.local.get(['tabImages'], items => {
@@ -177,6 +175,9 @@ function getRestoreTabImagesPromise() {
 							}
 							if (gTabImages[kKey] == undefined) {
 								gTabImages[kKey] = {};
+							}
+							if (gTabImages[kKey][key] != undefined) {
+								continue;
 							}
 							gTabImages[kKey][key] = value;
 						}

@@ -10,8 +10,9 @@
 	"permissions": [
 		"windows",
 		"tabs",
-		"activeTab",
+		"activeTab",    
 		"storage",
+		"unlimitedStorage",
 		"tabGroups",
 		"http://*/*",
 		"https://*/*",

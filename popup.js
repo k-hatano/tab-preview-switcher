@@ -654,6 +654,7 @@ function tabMoved(event) {
 	if (gDraggingTab != idSet.windowId + '_' + idSet.tabId) {
 		return;
 	}
+
 	let x = Math.floor(event.pageX / 192);
 	let y = Math.floor(event.pageY / 192);
 	let newIndex = x + y * gColumns;
@@ -775,6 +776,7 @@ function pinClicked(event) {
 		let originalIndex = aTab.index;
 		chrome.tabs.update(tabId, {pinned: pinnedAfter}, bTab => {
 			let movingTab = elementById('tab_' + windowId + '_' + tabId);
+			firstClass(movingTab, 'tab_cover').setAttribute('class', 'tab_cover darken');
 			if (pinnedAfter) {
 				firstClass(movingTab, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
 				firstClass(movingTab, 'tab_pin').setAttribute('class', 'tab_pin opaque');
