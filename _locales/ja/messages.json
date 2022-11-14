@@ -11,6 +11,9 @@
   "newTabInThisGroup": {
     "message": "このグループにタブを追加"
   },
+  "pinnedTabUnclickable": {
+    "message": "固定されたタブ"
+  },
   "pinnedTab": {
     "message": "固定されたタブ - クリックで固定解除"
   },

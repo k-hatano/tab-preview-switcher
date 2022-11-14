@@ -11,6 +11,9 @@
   "newTabInThisGroup": {
     "message": "New Tab In This Group"
   },
+  "pinnedTabUnclickable": {
+    "message": "Pinned Tab"
+  },
   "pinnedTab": {
     "message": "Pinned Tab - Click to Unpin"
   },

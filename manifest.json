@@ -13,17 +13,9 @@
 		"activeTab",    
 		"storage",
 		"unlimitedStorage",
-		"tabGroups",
-		"http://*/*",
-		"https://*/*",
-		"<all_urls>"
+		"tabGroups"
 	],
 	"host_permissions": [
-		"windows",
-		"tabs",
-		"activeTab",
-		"storage",
-		"tabGroups",
 		"http://*/*",
 		"https://*/*",
 		"<all_urls>"

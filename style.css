@@ -34,7 +34,7 @@ body.popup {
 
 @keyframes darken-tab-cover {
 	from {
-		background-color: #00000011;
+		background-color: #00000018;
 	}
 
 	to {
@@ -48,6 +48,10 @@ body.popup {
 
 .tab.dragging .tab_cover, .tab.entered.dragging .tab_cover {
 	background-color: #00000011;
+}
+
+.tab.dragging .tab_cover.selected, .tab.entered.dragging .tab_cover.selected {
+	background-color: #00000066;
 }
 
 .tab.entered {
