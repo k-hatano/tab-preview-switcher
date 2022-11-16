@@ -1,6 +1,5 @@
 
 let gTabImages = {};
-let gJpegQuality = 32;
 let gImageDepth = 1;
 let gColumns = 3;
 let gBackgroundColor = 'gray';
@@ -80,7 +79,7 @@ function updateTab(aTab, save) {
 		return;
 	}
 	gLastCapturedTime = Date.now();
-	chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg', quality: gJpegQuality}, imageUrl => {
+	chrome.tabs.captureVisibleTab(selectedWindowId, {format: 'jpeg', quality: gImageDepth * 32}, imageUrl => {
 		if (imageUrl == undefined) {
 			return;
 		}
@@ -129,7 +128,6 @@ function compressImage(imageUrl, windowTabId, callback) {
 			createImageBitmap(blob).then(originalImage => {
 				let imageSize = Math.min(originalImage.width, originalImage.height);
 				let newCanvas = new OffscreenCanvas(176 * gImageDepth, 176 * gImageDepth);
-				gJpegQuality = 32 * gImageDepth;
 				let ctx = newCanvas.getContext('2d');
 				ctx.drawImage(originalImage, 0, 0, imageSize, imageSize,
 					0, 0, 176 * gImageDepth, 176 * gImageDepth);
