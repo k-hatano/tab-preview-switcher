@@ -724,19 +724,39 @@ function tabMoved(event) {
 	let newIndex = x + y * gColumns;
 	
 	if (newIndex != gDraggingIndex) {
-		chrome.tabs.move(idSet.tabId, {index: newIndex}, movedTab => {
-			let newIndex = movedTab.index;
-			let movingTab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
-			let destinationTab;
-			if (gDraggingIndex < newIndex) {
-				destinationTab = elementById('content').children[newIndex + 1];
-			} else {
-				destinationTab = elementById('content').children[newIndex];
+		chrome.tabs.query({windowId: idSet.windowId}, tabs => {
+			let needsToUngroup = false;
+			if (newIndex >= tabs.length) {
+				needsToUngroup = true;
 			}
-			destinationTab.before(movingTab);
-			
-			gDraggingIndex = newIndex;
-			gDragged = true;
+			chrome.tabs.move(idSet.tabId, {index: newIndex}, movedTab => {
+				let newIndex = movedTab.index;
+				let movingTab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+				let destinationTab;
+				if (gDraggingIndex < newIndex) {
+					destinationTab = elementById('content').children[newIndex + 1];
+				} else {
+					destinationTab = elementById('content').children[newIndex];
+				}
+				destinationTab.before(movingTab);
+				
+				gDraggingIndex = newIndex;
+				gDragged = true;
+
+				if (needsToUngroup == true) {
+					chrome.tabs.ungroup([idSet.tabId], newTab2 => {
+						chrome.tabs.query({}, tabs2 => {
+							updateTabGroups(tabs2);
+							updateTabPins(tabs2);
+						});
+					});
+				} else {
+					chrome.tabs.query({}, tabs => {
+						updateTabGroups(tabs);
+						updateTabPins(tabs);
+					});
+				}
+			});
 		});
 	}
 }

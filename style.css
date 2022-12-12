@@ -2,6 +2,7 @@
 body.popup {
 	background-color: #888;
 	height: 576px;
+	min-width: 176px;
 }
 
 #bottom_padding {
