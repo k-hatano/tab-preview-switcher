@@ -94,14 +94,16 @@ function initialize() {
 
 	getUpdateSettingsPromise().then(_ => {
 		localizeMessages();
+		elementById('loading').setAttribute('class', 'hidden');
+		elementById('bottom_button_options').setAttribute('class', '');
 
 		elementById('body').style.width = parseInt(gColumns * 192) + 'px';
 		elementById('separator').style.width = parseInt(gColumns * 192 - 32) + 'px';
 		elementById('bottom_padding').style.width = parseInt(gColumns * 192) + 'px';
-		elementById('bottom_button_div').style.width = parseInt(gColumns * 192 - 12) + 'px';
 
 		elementById('body').style.background = gBackgroundColor;
 
+		getRestoreTabImagesPromise().then(getUpdateCurrentTabPromise());
 		chrome.windows.getCurrent(null, currentWindow => {
 			chrome.tabs.query({}, tabs => {
 				generateTabsInWindow(tabs, currentWindow);
@@ -109,8 +111,6 @@ function initialize() {
 				updateTabGroups(tabs);
 			});
 		});
-		getUpdateCurrentTabPromise();
-		getRestoreTabImagesPromise();
 	});
 }
 
@@ -539,7 +539,7 @@ function localizeMessages() {
 	let localizables = Array.from(document.getElementsByClassName('localizable'));
 
 	localizables.forEach(anElement => {
-		anElement.innerText = chrome.i18n.getMessage(anElement.innerText);
+		anElement.innerText = chrome.i18n.getMessage(anElement.getAttribute('name'));
 	});
 }
 

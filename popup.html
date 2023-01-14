@@ -6,7 +6,9 @@
 </head>
 
 <body id="body" class="popup">
-
+	<div id="loading">
+		<div id="loader" class="loader"></div>
+	</div>
 	<div id="tab_template_container">
 		<div id="tab_template" class="tab">
 			<div class="tab_group_cover hidden"></div>
@@ -14,7 +16,7 @@
 			<span class="tab_group_add hidden"><img src="plus.png" width="16px" height="16px" /></span>
 			<div class="tab_group_name hidden"></div>
 			<div class="tab_title"><img class="tab_favicon" /><span class="tab_title_span"><!--TITLE--></span><span class="tab_close hidden"><img src="cross.png" width="16px" height="16px" /></span></div>
-			<img class="tab_thumbnail" />
+			<img class="tab_thumbnail" border="0" />
 			<div class="tab_cover"></div>
 			<div class="tab_clickable"></div>
 			<canvas class="tab_pin" width="24px" height="24px"></canvas>
@@ -26,14 +28,14 @@
 
 		<div id="separator" class="hidden">
 			<hr class="separator_bar" />
-			<span class="separator_other_windows localizable">otherWindows</span>
+			<span class="separator_other_windows localizable" name="otherWindows">Other Windows</span>
 		</div>
 
 		<div id="content_others" class="hidden"></div>
 	</div>
 
 	<div id="bottom_button_div" class="bottom_button_div">
-		<button id="bottom_button_options" type="button"><span class="localizable">options</span></button>
+		<button id="bottom_button_options" type="button" class="hidden"><span class="localizable" name="options">Options</span></button>
 	</div>
 
 	<div id="bottom_padding"></div>
