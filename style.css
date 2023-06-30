@@ -121,11 +121,21 @@ body.popup {
 	height: 19px;
 	padding: 4px;
 	color: black;
+/*	text-shadow: 0px 0px 1px gray;*/
 	white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 	background: transparent;
     -webkit-text-overflow: ellipsis;
+}
+
+.tab_group_none {
+	position: absolute;
+	width: 176px;
+	height: 27px;
+	bottom: 0px;
+	right: 0px;
+	background: #FFFFFF88;
 }
 
 .tab_title.entered {
@@ -170,24 +180,42 @@ body.popup {
 	background: #0003;
 }
 
-.tab_group_add {
+.tab_button {
 	position: absolute;
 	width: 22px;
 	height: 22px;
-	bottom: 2px;
-	right: 2px;
 	text-align: center;
 	vertical-align: middle;
-    z-index: 5;
+  z-index: 10;
 }
 
-.tab_group_add img {
+.tab_group_add {
+	bottom: 2px;
+	right: 2px;
+}
+
+.tab_group_make {
+	bottom: 2px;
+	right: 2px;
+}
+
+.tab_group_left {
+	bottom: 2px;
+	right: 26px;
+}
+
+.tab_group_ungroup {
+	bottom: 2px;
+	right: 26px;
+}
+
+.tab_group_add img, .tab_group_make img, .tab_group_left img, .tab_group_ungroup img {
 	margin: 3px;
 	text-align: center;
 	vertical-align: middle;
 }
 
-.tab_group_add.entered {
+.tab_group_add.entered, .tab_group_make.entered, .tab_group_left.entered, .tab_group_ungroup.entered {
 	background: #0003;
 }
 

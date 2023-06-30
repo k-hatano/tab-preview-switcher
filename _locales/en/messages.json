@@ -11,6 +11,15 @@
   "newTabInThisGroup": {
     "message": "New Tab In This Group"
   },
+  "newTabGroup": {
+    "message": "New Tab Group"
+  },
+  "ungroup": {
+    "message": "Ungroup"
+  },
+  "addThisTabToLeftGroup": {
+    "message": "Add Tab In Left Tab Group"
+  },
   "pinnedTabUnclickable": {
     "message": "Pinned Tab"
   },

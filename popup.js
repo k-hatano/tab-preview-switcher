@@ -103,7 +103,7 @@ function initialize() {
 
 		elementById('body').style.background = gBackgroundColor;
 
-		getRestoreTabImagesPromise().then(getUpdateCurrentTabPromise());
+		getRestoreTabImagesPromise().then(getRequestUpdateCurrentTabPromise());
 		chrome.windows.getCurrent(null, currentWindow => {
 			chrome.tabs.query({}, tabs => {
 				generateTabsInWindow(tabs, currentWindow);
@@ -116,7 +116,7 @@ function initialize() {
 
 // 要素生成系
 
-function getTabElement(aTab, template, currentWindow, isSelected) {
+function generateTabElement(aTab, template, currentWindow, isSelected) {
 	let tabElement = template.cloneNode(true);
 	let idsString = aTab.windowId + '_' + aTab.id;
 
@@ -132,46 +132,88 @@ function getTabElement(aTab, template, currentWindow, isSelected) {
 		firstClass(tabElement, 'tab_favicon').setAttribute('src', aTab.favIconUrl);
 	}
 
-	firstClass(tabElement, 'tab_thumbnail').setAttribute('id', 'thumbnail_' + idsString);
+	setAttributesToFirstClass(tabElement, 'tab_thumbnail', {
+		id: 'thumbnail_' + idsString
+	});
 	
 	if (gTabImages['' + aTab.windowId + '_' + aTab.id] != undefined) {
-		firstClass(tabElement, 'tab_thumbnail').setAttribute('src', gTabImages[idsString]);
+		setAttributesToFirstClass(tabElement, 'tab_thumbnail', {
+			src: gTabImages[idsString]
+		});
 	}
 
-	let tabTitleSpan = firstClass(tabElement, 'tab_title_span');
+	let tabTitleSpan = setAttributesToFirstClass(tabElement, 'tab_title_span', {
+		id: 'tab_title_span_' + aTab.windowId + '_' + aTab.id,
+		title: aTab.title + "\n" + aTab.url
+	});
 	tabTitleSpan.innerText = aTab.title;
-	tabTitleSpan.setAttribute('id', 'tab_title_span_' + aTab.windowId + '_' + aTab.id);
-	tabTitleSpan.setAttribute('title', aTab.title + "\n" + aTab.url);
 	
-	firstClass(tabElement, 'tab_close').setAttribute('id', 'close_' + idsString);
-	firstClass(tabElement, 'tab_close').setAttribute('title', chrome.i18n.getMessage("close"));
-	
-	firstClass(tabElement, 'tab_group_add').setAttribute('id', 'tab_group_add_' + idsString);
-	firstClass(tabElement, 'tab_group_add').setAttribute('title', chrome.i18n.getMessage("newTabInThisGroup"));
+	setAttributesToFirstClass(tabElement, 'tab_close', {
+		id: 'close_' + idsString,
+		title: chrome.i18n.getMessage("close")
+	});
+
+	setAttributesToFirstClass(tabElement, 'tab_group_add', {
+		id: 'tab_group_add_' + idsString,
+		title: chrome.i18n.getMessage("newTabInThisGroup")
+	});
+
+	setAttributesToFirstClass(tabElement, 'tab_group_ungroup', {
+		id: 'tab_group_ungroup_' + idsString,
+		title: chrome.i18n.getMessage("ungroup")
+	});
+
+	setAttributesToFirstClass(tabElement, 'tab_group_make', {
+		id: 'tab_group_make_' + idsString,
+		title: chrome.i18n.getMessage("newTabGroup")
+	});
+
+	setAttributesToFirstClass(tabElement, 'tab_group_left', {
+		id: 'tab_group_left_' + idsString,
+		title: chrome.i18n.getMessage("addThisTabToLeftGroup")
+	});
 
 	tabElement.setAttribute('id', 'tab_' + idsString);
 
-	firstClass(tabElement, 'tab_cover').setAttribute('id', 'cover_' + idsString);
 	if (isSelected) {
-		firstClass(tabElement, 'tab_cover').setAttribute('class', 'tab_cover selected');
+		setAttributesToFirstClass(tabElement, 'tab_cover', {
+			id: 'cover_' + idsString,
+			class: 'tab_cover selected'
+		});
+	} else {
+		setAttributesToFirstClass(tabElement, 'tab_cover', {
+			id: 'cover_' + idsString
+		});
 	}
 
-	firstClass(tabElement, 'tab_clickable').setAttribute('id', 'clickable_' + idsString);
+	setAttributesToFirstClass(tabElement, 'tab_clickable', {
+		id: 'clickable_' + idsString
+	});
 
-	firstClass(tabElement, 'tab_pin').setAttribute('id', 'pin_' + idsString);
+	let tabPin = setAttributesToFirstClass(tabElement, 'tab_pin', {
+		id: 'pin_' + idsString
+	})
 	if (aTab.windowId == currentWindow.id) {
 		if (aTab.pinned == false) {
-			firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("unpinnedTab"));
-			firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
+			setAttributesToFirstClass(tabElement, 'tab_pin', {
+				title: chrome.i18n.getMessage("unpinnedTab"),
+				class: 'tab_pin transparent'
+			});
 		} else {
-			firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
+			setAttributesToFirstClass(tabElement, 'tab_pin', {
+				title: chrome.i18n.getMessage("pinnedTab")
+			});
 		}
 	} else {
 		if (aTab.pinned == false) {
-			firstClass(tabElement, 'tab_pin').setAttribute('title', '');
-			firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
+			setAttributesToFirstClass(tabElement, 'tab_pin', {
+				title: '',
+				class: 'tab_pin transparent'
+			});
 		} else {
-			firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTabUnclickable"));
+			setAttributesToFirstClass(tabElement, 'tab_pin', {
+				title: chrome.i18n.getMessage("pinnedTabUnclickable")
+			});
 		}
 	}
 
@@ -190,7 +232,7 @@ function generateTabsInWindow(tabs, currentWindow) {
 		}
 		
 		let tabElement = undefined;
-		tabElement = getTabElement(tabs[i], template, currentWindow, isSelected);
+		tabElement = generateTabElement(tabs[i], template, currentWindow, isSelected);
 
 		if (tabs[i].windowId == currentWindow.id) {
 			elementById('content').innerHTML += tabElement.outerHTML;
@@ -221,12 +263,13 @@ function updateTabPins(tabs) {
 	for (let i = 0; i < tabs.length; i++) {
 		let idsString = tabs[i].windowId + '_' + tabs[i].id;
 		let tabElement = elementById('tab_' + idsString);
+		let tabPin = firstClass(tabElement, 'tab_pin');
 		if (tabs[i].pinned) {
-			firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
-			firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin');
+			tabPin.setAttribute('title', chrome.i18n.getMessage("pinnedTab"));
+			tabPin.setAttribute('class', 'tab_pin');
 		} else {
-			firstClass(tabElement, 'tab_pin').setAttribute('title', chrome.i18n.getMessage("unpinnedTab"));
-			firstClass(tabElement, 'tab_pin').setAttribute('class', 'tab_pin transparent');
+			tabPin.setAttribute('title', chrome.i18n.getMessage("unpinnedTab"));
+			tabPin.setAttribute('class', 'tab_pin transparent');
 		}
 	}
 }
@@ -234,25 +277,36 @@ function updateTabPins(tabs) {
 function updateTabGroups(tabs) {
 	for (let i = 0; i < tabs.length; i++) {
 		let idsString = tabs[i].windowId + '_' + tabs[i].id;
+		let prevHasGroup = (i > 0 && tabs[i - 1].groupId > 0 && tabs[i].windowId == tabs[i - 1].windowId);
 		if (tabs[i].groupId >= 0) {
 			let tabElement = elementById('tab_' + idsString);
 			if (tabElement != undefined) {
+				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : '');
 				chrome.tabGroups.get(tabs[i].groupId, tabGroup => {
 					firstClass(tabElement, 'tab_group_name').innerText = tabGroup.title;
 					firstClass(tabElement, 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
-					firstClass(tabElement, 'tab_group_cover').setAttribute('class', 'tab_group_cover');
-					firstClass(tabElement, 'tab_group_name').setAttribute('class', 'tab_group_name');
-					firstClass(tabElement, 'tab_group_add').setAttribute('class', 'tab_group_add hidden');
+					removeClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
+					removeClass(firstClass(tabElement, 'tab_group_name'), 'hidden');
+					addClass(firstClass(tabElement, 'tab_group_add'), 'hidden');
+					addClass(firstClass(tabElement, 'tab_group_ungroup'), 'hidden');
+					addClass(firstClass(tabElement, 'tab_group_make'), 'hidden');
+					addClass(firstClass(tabElement, 'tab_group_left'), 'hidden');
+					addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
 					firstClass(tabElement, 'tab_group').setAttribute('class', 'tab_group');
 				});
 			}
 		} else {
 			let tabElement = elementById('tab_' + idsString);
 			if (tabElement != undefined) {
-				firstClass(tabElement, 'tab_group_cover').setAttribute('class', 'tab_group_cover hidden');
-				firstClass(tabElement, 'tab_group').setAttribute('class', 'tab_group hidden');
-				firstClass(tabElement, 'tab_group_name').setAttribute('class', 'tab_group_name hidden');
-				firstClass(tabElement, 'tab_group_add').setAttribute('class', 'tab_group_add hidden');
+				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : '');
+				addClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_name'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_add'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_ungroup'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_make'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_left'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
 			}
 		}
 	}
@@ -271,17 +325,19 @@ function addListenersToTabs(window, tabs) {
 			clickableDiv.addEventListener('click', tabClicked);
 
 			if (window.id == tabs[i].windowId) {
-				clickableDiv.addEventListener('mousedown', tabPressed);
-				clickableDiv.addEventListener('mouseup', tabReleased);
-				clickableDiv.addEventListener('mousemove', tabMoved);
-				clickableDiv.addEventListener('mouseleave', tabOut);
+				clickableDiv.addEventListener('mousedown', clickableTabPressed);
+				clickableDiv.addEventListener('mouseup', clickableTabReleased);
+				clickableDiv.addEventListener('mousemove', clickableTabMoved);
+				clickableDiv.addEventListener('mouseleave', clickableTabLeft);
 
-				elementById('tab_title_span_' + idsString).addEventListener('mouseenter', mouseEnterIntoTab);
-				elementById('tab_title_span_' + idsString).addEventListener('mouseleave', mouseLeaveFromTab);
+				let tabTitleSpan = elementById('tab_title_span_' + idsString);
+				tabTitleSpan.addEventListener('mouseenter', mouseEnterIntoTabTitle);
+				tabTitleSpan.addEventListener('mouseleave', mouseLeaveFromTabTitle);
 
-				elementById('pin_' + idsString).addEventListener('mouseenter', mouseEnterIntoTab);
-				elementById('pin_' + idsString).addEventListener('mouseleave', mouseLeaveFromTab);
-				elementById('pin_' + idsString).addEventListener('click', pinClicked);
+				let tabPin = elementById('pin_' + idsString);
+				tabPin.addEventListener('mouseenter', mouseEnterIntoTabTitle);
+				tabPin.addEventListener('mouseleave', mouseLeaveFromTabTitle);
+				tabPin.addEventListener('click', pinClicked);
 			} else {
 				clickableDiv.addEventListener('mousedown', otherTabPressed);
 				clickableDiv.addEventListener('mouseup', otherTabReleased);
@@ -289,9 +345,31 @@ function addListenersToTabs(window, tabs) {
 		}
 
 		if (elementById('tab_group_add_' + idsString) != null) {
-			elementById('tab_group_add_' + idsString).addEventListener('mouseenter', addTabInThisGroupEntered);
-			elementById('tab_group_add_' + idsString).addEventListener('mouseleave', addTabInThisGroupLeft);
-			elementById('tab_group_add_' + idsString).addEventListener('click', addTabInThisGroupClicked);
+			let tabGroupAdd = elementById('tab_group_add_' + idsString);
+			tabGroupAdd.addEventListener('mouseenter', addTabInThisGroupEntered);
+			tabGroupAdd.addEventListener('mouseleave', addTabInThisGroupLeft);
+			tabGroupAdd.addEventListener('click', addTabInThisGroupClicked);
+		}
+
+		if (elementById('tab_group_ungroup_' + idsString) != null) {
+			let tabGroupAdd = elementById('tab_group_ungroup_' + idsString);
+			tabGroupAdd.addEventListener('mouseenter', ungroupEntered);
+			tabGroupAdd.addEventListener('mouseleave', ungroupLeft);
+			tabGroupAdd.addEventListener('click', ungroupClicked);
+		}
+
+		if (elementById('tab_group_make_' + idsString) != null) {
+			let tabGroupMake = elementById('tab_group_make_' + idsString);
+			tabGroupMake.addEventListener('mouseenter', makeTabGroupEntered);
+			tabGroupMake.addEventListener('mouseleave', makeTabGroupLeft);
+			tabGroupMake.addEventListener('click', makeTabGroupClicked);
+		}
+
+		if (elementById('tab_group_left_' + idsString) != null) {
+			let tabGroupLeft = elementById('tab_group_left_' + idsString);
+			tabGroupLeft.addEventListener('mouseenter', addThisTabInLeftGroupEntered);
+			tabGroupLeft.addEventListener('mouseleave', addThisTabInLeftGroupLeft);
+			tabGroupLeft.addEventListener('click', addThisTabInLeftGroupClicked);
 		}
 
 		if (elementById('pin_' + idsString) != null) {
@@ -299,9 +377,10 @@ function addListenersToTabs(window, tabs) {
 		}
 
 		if (elementById('close_' + idsString) != null) {
-			elementById('close_' + idsString).addEventListener('click', closeTabClicked);
-			elementById('close_' + idsString).addEventListener('mouseenter', closeTabEntered);
-			elementById('close_' + idsString).addEventListener('mouseleave', closeTabLeft);
+			let tabClose = elementById('close_' + idsString);
+			tabClose.addEventListener('click', closeTabClicked);
+			tabClose.addEventListener('mouseenter', closeTabEntered);
+			tabClose.addEventListener('mouseleave', closeTabLeft);
 		}
 	}
 	if (elementById('new_tab') != null) {
@@ -439,29 +518,41 @@ function activateMarkedTab() {
 }
 
 function requestTabImages(override) {
-	chrome.runtime.sendMessage({name: "requestTabImages"}, response => {
-		tabImagesUpdated(response.tabImages, override);
-	});
+	try {
+		chrome.runtime.sendMessage({name: "requestTabImages"}, response => {
+			tabImagesUpdated(response.tabImages, override);
+		});
+	} catch (error) {
+		console.dir(error);
+	}
 }
 
-function updateCurrentTab() {
-	chrome.runtime.sendMessage({name: "updateCurrentTab"}, response => {
-		tabImagesUpdated(response.tabImages, true);
-	});
+function requestUpdateCurrentTab() {
+	try {
+		chrome.runtime.sendMessage({name: "requestUpdateCurrentTab"}, response => {
+			tabImagesUpdated(response.tabImages, true);
+		});
+	} catch (error) {
+		console.dir(error);
+	}
 }
 
 function getSaveTabImagesPromise() {
-	return new Promise((fulfill, neglect) => {
-		chrome.storage.local.set({
-			tabImages: gTabImages
-		}, _ => {
-			fulfill();
+	try {
+		return new Promise((fulfill, decline) => {
+			chrome.storage.local.set({
+				tabImages: gTabImages
+			}, _ => {
+				fulfill();
+			});
 		});
-	});
+	} catch (error) {
+		decline(error);
+	}
 }
 
 function getRestoreTabImagesPromise() {
-	return new Promise((fulfill, neglect) => {
+	return new Promise((fulfill, decline) => {
 		chrome.storage.local.get(['tabImages'], items => {
 			tabImagesUpdated(items.tabImages, false);
 			fulfill();
@@ -485,16 +576,16 @@ function getRestoreTabImagesPromise() {
 	});
 }
 
-function getUpdateCurrentTabPromise() {
-	return new Promise((fulfill, neglect) => {
-		updateCurrentTab();
+function getRequestUpdateCurrentTabPromise() {
+	return new Promise((fulfill, decline) => {
+		requestUpdateCurrentTab();
 		fulfill();
 	});
 }
 
 
 function getRequestTabImagesPromise(override) {
-	return new Promise((fulfill, neglect) => {
+	return new Promise((fulfill, decline) => {
 		requestTabImages(override);
 		fulfill();
 	});
@@ -574,6 +665,14 @@ function firstClass(elements, className) {
 	return elements.getElementsByClassName(className)[0];
 }
 
+function setAttributesToFirstClass(elements, className, attributes) {
+	let element = firstClass(elements, className);
+	for (key in attributes) {
+		element.setAttribute(key, attributes[key]);
+	}
+	return element;
+}
+
 function addClass(anElement, aClass) {
 	let newClass = anElement.getAttribute('class') + ' ' + aClass;
 	anElement.setAttribute('class', newClass);
@@ -606,10 +705,99 @@ function addTabInThisGroupClicked(event) {
 		chrome.tabs.get(idSet.tabId, tab => {
 			chrome.tabs.create({active: true, index: tab.index + 1}, newTab => {
 				chrome.tabs.group({groupId: tab.groupId, tabIds: [newTab.id]}, newTab2 => {
-					chrome.tabs.update(newTab.id, {active: true}, ignore => {});
+					chrome.tabs.update(newTab.id, {active: true}, ignore => {
+						chrome.tabs.query({}, tabs2 => {
+							updateTabGroups(tabs2);
+							updateTabPins(tabs2);
+						});
+					});
 				});
 			});
 		});
+	});
+}
+
+function ungroupEntered(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_ungroup');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	addClass(firstClass(tab, 'tab_group_ungroup'), 'entered');
+}
+
+function ungroupLeft(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_ungroup');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	removeClass(firstClass(tab, 'tab_group_ungroup'), 'entered');
+}
+
+function ungroupClicked(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_ungroup');
+	chrome.tabs.ungroup([idSet.tabId], ignore => {
+		chrome.tabs.query({}, tabs => {
+			updateTabGroups(tabs);
+			updateTabPins(tabs);
+		});
+	});
+}
+
+function makeTabGroupEntered(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_make');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	addClass(firstClass(tab, 'tab_group_make'), 'entered');
+}
+
+function makeTabGroupLeft(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_make');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	removeClass(firstClass(tab, 'tab_group_make'), 'entered');
+}
+
+function makeTabGroupClicked(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_make');
+	chrome.tabs.group({tabIds: [idSet.tabId]}, newTab => {
+		chrome.tabs.query({}, tabs => {
+			updateTabGroups(tabs);
+			updateTabPins(tabs);
+		});
+	});
+}
+
+function addThisTabInLeftGroupEntered(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_left');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	addClass(firstClass(tab, 'tab_group_left'), 'entered');
+}
+
+function addThisTabInLeftGroupLeft(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_left');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	removeClass(firstClass(tab, 'tab_group_left'), 'entered');
+}
+
+function addThisTabInLeftGroupClicked(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_left');
+	chrome.tabs.query({windowId: idSet.windowId}, tabs => {
+		let index = -1;
+		for (let i = 0; i < tabs.length; i++) {
+			if (tabs[i].id == idSet.tabId) {
+				index = i;
+				break;
+			}
+		}
+		if (index > 0) {
+			let tabGroupId = tabs[index - 1].groupId;
+			chrome.tabs.group({groupId: tabGroupId, tabIds: [idSet.tabId]}, ignore => {
+				chrome.tabs.query({}, tabs2 => {
+					updateTabGroups(tabs2);
+					updateTabPins(tabs2);
+				});
+			});
+		}
 	});
 }
 
@@ -654,7 +842,7 @@ function newTabReleased(event) {
 	removeClass(tab, 'dragging');
 }
 
-function tabPressed(event) {
+function clickableTabPressed(event) {
 	let idSet = windowTabId(event.currentTarget.id, 'clickable');
 	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	gDraggingTab = idSet.windowId + '_' + idSet.tabId;
@@ -669,7 +857,7 @@ function tabPressed(event) {
 	resetDarkness();
 }
 
-function tabReleased(event) {
+function clickableTabReleased(event) {
 	let idSet = windowTabId(event.currentTarget.id, 'clickable');
 	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	removeClass(event.currentTarget, 'dragging');
@@ -695,7 +883,7 @@ function tabReleased(event) {
 
 }
 
-function tabOut(evet) {
+function clickableTabLeft(evet) {
 	if (gDragged) {
 		let idSet = windowTabId(event.currentTarget.id, 'clickable');
 		let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
@@ -709,7 +897,7 @@ function tabOut(evet) {
 	}
 }
 
-function tabMoved(event) {
+function clickableTabMoved(event) {
 	if (gDraggingTab == undefined) {
 		return;
 	}
@@ -774,14 +962,25 @@ function tabEntered(event) {
 
 	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
 	addClass(tab, 'entered');
-	if (gCloseButtonsOnPinnedTabs 
+	if (tab.getAttribute('name').indexOf('other_') < 0 && gCloseButtonsOnPinnedTabs 
 			|| (firstClass(tab, 'tab_pin').getAttribute('class').indexOf('hidden') >= 0 
 				|| firstClass(tab, 'tab_pin').getAttribute('class').indexOf('transparent') >= 0)) {
 		addClass(firstClass(tab, 'tab_title'), 'entered');
 		removeClass(firstClass(tab, 'tab_close'), 'hidden');
 	}
-	if (firstClass(tab, 'tab_group').getAttribute('class').indexOf('hidden') < 0 ) {
+	if (tab.getAttribute('name').indexOf('other_') < 0 
+		&& firstClass(tab, 'tab_group').getAttribute('class').indexOf('hidden') < 0 ) {
 		removeClass(firstClass(tab, 'tab_group_add'), 'hidden');
+		// removeClass(firstClass(tab, 'tab_group_ungroup'), 'hidden');
+	}
+	if (tab.getAttribute('name').indexOf('other_') < 0 
+		 && firstClass(tab, 'tab_group').getAttribute('class').indexOf('hidden') >= 0
+		 && ((firstClass(tab, 'tab_pin').getAttribute('class').indexOf('hidden') >= 0 || firstClass(tab, 'tab_pin').getAttribute('class').indexOf('transparent') >= 0))) {
+		removeClass(firstClass(tab, 'tab_group_none'), 'hidden');
+		removeClass(firstClass(tab, 'tab_group_make'), 'hidden');
+		if (firstClass(tab, 'tab_hidden').getAttribute('value').indexOf('left') >= 0) {
+			removeClass(firstClass(tab, 'tab_group_left'), 'hidden');
+		}
 	}
 
 	resetDarkness();
@@ -795,6 +994,10 @@ function tabLeft(event) {
 	removeClass(firstClass(tab, 'tab_title'), 'entered');
 	addClass(firstClass(tab, 'tab_close'), 'hidden');
 	addClass(firstClass(tab, 'tab_group_add'), 'hidden');
+	addClass(firstClass(tab, 'tab_group_ungroup'), 'hidden');
+	addClass(firstClass(tab, 'tab_group_make'), 'hidden');
+	addClass(firstClass(tab, 'tab_group_left'), 'hidden');
+	addClass(firstClass(tab, 'tab_group_none'), 'hidden');
 }
 
 function newTabEntered(event) {
@@ -822,7 +1025,7 @@ function closeTabLeft(event) {
 	firstClass(tab, 'tab_close').setAttribute('class', 'tab_close');
 }
 
-function mouseEnterIntoTab(event) {
+function mouseEnterIntoTabTitle(event) {
 	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)$/);
 	var windowId = parseInt(matches[1]);
 	var tabId = parseInt(matches[2]);
@@ -835,7 +1038,7 @@ function mouseEnterIntoTab(event) {
 	}
 }
 
-function mouseLeaveFromTab(event) {
+function mouseLeaveFromTabTitle(event) {
 	var matches = (event.target.id).match(/_([0-9]+)_([0-9]+)/);
 	var windowId = parseInt(matches[1]);
 	var tabId = parseInt(matches[2]);
@@ -932,14 +1135,19 @@ function drawPin(target, selected) {
 	ctx.shadowOffsetX = 2;
 	ctx.shadowOffsetY = 2;
 
-	ctx.fillStyle = selected ? "#222" : "#444";
+	ctx.fillStyle = selected ? "#202020" : "#404040";
 	ctx.beginPath();
 	ctx.arc(width / 2, height / 2, width * 1 / 3, 0, Math.PI * 2, true);
 	ctx.fill();
+
+	// ctx.fillStyle = selected ? "#121212" : "#282828";
+	// ctx.beginPath();
+	// ctx.arc(width / 2, height / 2, width * 1 / 6, 0, Math.PI * 2, true);
+	// ctx.fill();
 }
 
 function getUpdateSettingsPromise() {
-	return new Promise((fulfill, neglect) => {
+	return new Promise((fulfill, decline) => {
 		chrome.storage.sync.get({
 			quality: 1, // low
 			columns: 3,

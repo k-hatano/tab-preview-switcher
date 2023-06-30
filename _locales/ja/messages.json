@@ -11,6 +11,15 @@
   "newTabInThisGroup": {
     "message": "このグループにタブを追加"
   },
+  "newTabGroup": {
+    "message": "新しいタブグループ"
+  },
+  "ungroup": {
+    "message": "グループから削除"
+  },
+  "addThisTabToLeftGroup": {
+    "message": "左のタブグループにこのタブを追加"
+  },
   "pinnedTabUnclickable": {
     "message": "固定されたタブ"
   },
