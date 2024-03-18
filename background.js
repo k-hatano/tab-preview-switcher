@@ -239,6 +239,5 @@ function countAvailableImages() {
 }
 
 updateSettings();
-if (countAvailableImages() <= 1) {
-	getRestoreTabImagesPromise();
-}
+getRestoreTabImagesPromise();
+

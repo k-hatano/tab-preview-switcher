@@ -191,7 +191,7 @@ body.popup {
 
 .tab_group_add {
 	bottom: 2px;
-	right: 2px;
+	right: 26px;
 }
 
 .tab_group_make {
@@ -204,19 +204,37 @@ body.popup {
 	right: 26px;
 }
 
-.tab_group_ungroup {
+.tab_group_right {
 	bottom: 2px;
 	right: 26px;
 }
 
-.tab_group_add img, .tab_group_make img, .tab_group_left img, .tab_group_ungroup img {
+.tab_group_ungroup {
+	bottom: 2px;
+	right: 2px;
+}
+
+.tab_group_add img, .tab_group_make img, .tab_group_left img, .tab_group_right img, .tab_group_ungroup img {
 	margin: 3px;
 	text-align: center;
 	vertical-align: middle;
 }
 
-.tab_group_add.entered, .tab_group_make.entered, .tab_group_left.entered, .tab_group_ungroup.entered {
+.tab_group_add.entered, 
+.tab_group_make.entered, 
+.tab_group_left.entered, 
+.tab_group_right.entered, 
+.tab_group_ungroup.entered {
 	background: #0003;
+}
+
+.tab.selected .tab_close.entered, 
+.tab.selected .tab_group_add.entered, 
+.tab.selected .tab_group_make.entered, 
+.tab.selected .tab_group_left.entered, 
+.tab.selected .tab_group_right.entered, 
+.tab.selected .tab_group_ungroup.entered {
+	background: #fff3;
 }
 
 .tab_thumbnail {
@@ -281,7 +299,7 @@ body.popup {
    	user-select: none;
 }
 
-.selected {
+.tab_cover.selected {
 	background-color: #0006;
 }
 

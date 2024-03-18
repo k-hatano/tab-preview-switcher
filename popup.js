@@ -120,6 +120,12 @@ function generateTabElement(aTab, template, currentWindow, isSelected) {
 	let tabElement = template.cloneNode(true);
 	let idsString = aTab.windowId + '_' + aTab.id;
 
+	if (isSelected) {
+		addClass(tabElement, 'selected');
+	} else {
+		removeClass(tabElement, 'selected');
+	}
+
 	if (aTab.windowId == currentWindow.id) {
 		tabElement.setAttribute('name', 'tab_' + idsString);
 	} else {
@@ -171,6 +177,11 @@ function generateTabElement(aTab, template, currentWindow, isSelected) {
 	setAttributesToFirstClass(tabElement, 'tab_group_left', {
 		id: 'tab_group_left_' + idsString,
 		title: chrome.i18n.getMessage("addThisTabToLeftGroup")
+	});
+
+	setAttributesToFirstClass(tabElement, 'tab_group_right', {
+		id: 'tab_group_right_' + idsString,
+		title: chrome.i18n.getMessage("addThisTabToRightGroup")
 	});
 
 	tabElement.setAttribute('id', 'tab_' + idsString);
@@ -278,27 +289,42 @@ function updateTabGroups(tabs) {
 	for (let i = 0; i < tabs.length; i++) {
 		let idsString = tabs[i].windowId + '_' + tabs[i].id;
 		let prevHasGroup = (i > 0 && tabs[i - 1].groupId > 0 && tabs[i].windowId == tabs[i - 1].windowId);
+		let nextHasGroup = (tabs.length > i + 1 && tabs[i + 1].groupId > 0 && tabs[i].windowId == tabs[i + 1].windowId);
 		if (tabs[i].groupId >= 0) {
 			let tabElement = elementById('tab_' + idsString);
 			if (tabElement != undefined) {
-				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : '');
+				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : (nextHasGroup ? 'right' : ''));
 				chrome.tabGroups.get(tabs[i].groupId, tabGroup => {
-					firstClass(tabElement, 'tab_group_name').innerText = tabGroup.title;
-					firstClass(tabElement, 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
-					removeClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
-					removeClass(firstClass(tabElement, 'tab_group_name'), 'hidden');
-					addClass(firstClass(tabElement, 'tab_group_add'), 'hidden');
-					addClass(firstClass(tabElement, 'tab_group_ungroup'), 'hidden');
-					addClass(firstClass(tabElement, 'tab_group_make'), 'hidden');
-					addClass(firstClass(tabElement, 'tab_group_left'), 'hidden');
-					addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
-					firstClass(tabElement, 'tab_group').setAttribute('class', 'tab_group');
+					if (tabGroup != undefined) {
+						firstClass(tabElement, 'tab_group_name').innerText = tabGroup.title;
+						firstClass(tabElement, 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
+						removeClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
+						removeClass(firstClass(tabElement, 'tab_group_name'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_add'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_ungroup'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_make'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_left'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_right'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
+						firstClass(tabElement, 'tab_group').setAttribute('class', 'tab_group');
+					} else {
+						firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : (nextHasGroup ? 'right' : ''));
+						addClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_name'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_add'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_ungroup'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_make'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_left'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_right'), 'hidden');
+						addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
+					}
 				});
 			}
 		} else {
 			let tabElement = elementById('tab_' + idsString);
 			if (tabElement != undefined) {
-				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : '');
+				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : (nextHasGroup ? 'right' : ''));
 				addClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
 				addClass(firstClass(tabElement, 'tab_group'), 'hidden');
 				addClass(firstClass(tabElement, 'tab_group_name'), 'hidden');
@@ -306,6 +332,7 @@ function updateTabGroups(tabs) {
 				addClass(firstClass(tabElement, 'tab_group_ungroup'), 'hidden');
 				addClass(firstClass(tabElement, 'tab_group_make'), 'hidden');
 				addClass(firstClass(tabElement, 'tab_group_left'), 'hidden');
+				addClass(firstClass(tabElement, 'tab_group_right'), 'hidden');
 				addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
 			}
 		}
@@ -370,6 +397,13 @@ function addListenersToTabs(window, tabs) {
 			tabGroupLeft.addEventListener('mouseenter', addThisTabInLeftGroupEntered);
 			tabGroupLeft.addEventListener('mouseleave', addThisTabInLeftGroupLeft);
 			tabGroupLeft.addEventListener('click', addThisTabInLeftGroupClicked);
+		}
+
+		if (elementById('tab_group_right_' + idsString) != null) {
+			let tabGroupLeft = elementById('tab_group_right_' + idsString);
+			tabGroupLeft.addEventListener('mouseenter', addThisTabInRightGroupEntered);
+			tabGroupLeft.addEventListener('mouseleave', addThisTabInRightGroupLeft);
+			tabGroupLeft.addEventListener('click', addThisTabInRightGroupClicked);
 		}
 
 		if (elementById('pin_' + idsString) != null) {
@@ -733,10 +767,26 @@ function ungroupLeft(event) {
 
 function ungroupClicked(event) {
 	let idSet = windowTabId(event.currentTarget.id, 'tab_group_ungroup');
-	chrome.tabs.ungroup([idSet.tabId], ignore => {
-		chrome.tabs.query({}, tabs => {
-			updateTabGroups(tabs);
-			updateTabPins(tabs);
+	let movingTab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+
+
+	chrome.tabs.get(idSet.tabId, aTab => {
+		let originalIndex = aTab.index;
+		chrome.tabs.ungroup([idSet.tabId], ignore => {
+			chrome.tabs.get(idSet.tabId, bTab => {
+				let destinationIndex = bTab.index;
+				let destinationTab;
+				if (originalIndex < destinationIndex) {
+					destinationTab = elementById('content').children[destinationIndex + 1];
+				} else {
+					destinationTab = elementById('content').children[destinationIndex];
+				}
+				destinationTab.before(movingTab);
+				chrome.tabs.query({}, tabs => {
+					updateTabGroups(tabs);
+					updateTabPins(tabs);
+				});
+			});
 		});
 	});
 }
@@ -791,6 +841,42 @@ function addThisTabInLeftGroupClicked(event) {
 		}
 		if (index > 0) {
 			let tabGroupId = tabs[index - 1].groupId;
+			chrome.tabs.group({groupId: tabGroupId, tabIds: [idSet.tabId]}, ignore => {
+				chrome.tabs.query({}, tabs2 => {
+					updateTabGroups(tabs2);
+					updateTabPins(tabs2);
+				});
+			});
+		}
+	});
+}
+
+function addThisTabInRightGroupEntered(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_right');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	addClass(firstClass(tab, 'tab_group_right'), 'entered');
+}
+
+function addThisTabInRightGroupLeft(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_right');
+
+	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+	removeClass(firstClass(tab, 'tab_group_right'), 'entered');
+}
+
+function addThisTabInRightGroupClicked(event) {
+	let idSet = windowTabId(event.currentTarget.id, 'tab_group_right');
+	chrome.tabs.query({windowId: idSet.windowId}, tabs => {
+		let index = -1;
+		for (let i = 0; i < tabs.length; i++) {
+			if (tabs[i].id == idSet.tabId) {
+				index = i;
+				break;
+			}
+		}
+		if (index >= 0 && index + 1 <= tabs.length) {
+			let tabGroupId = tabs[index + 1].groupId;
 			chrome.tabs.group({groupId: tabGroupId, tabIds: [idSet.tabId]}, ignore => {
 				chrome.tabs.query({}, tabs2 => {
 					updateTabGroups(tabs2);
@@ -951,10 +1037,14 @@ function clickableTabMoved(event) {
 
 function closeTabClicked(event) {
 	let idSet = windowTabId(event.currentTarget.id, 'close');
-	closeTab(idSet.windowId, idSet.tabId);
-
-	let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
-	addClass(tab, 'hidden');
+	chrome.tabs.remove(idSet.tabId, aTab => {
+		let tab = elementById('tab_' + idSet.windowId + '_' + idSet.tabId);
+		addClass(tab, 'hidden');
+		chrome.tabs.query({}, tabs2 => {
+			updateTabGroups(tabs2);
+			updateTabPins(tabs2);
+		});
+	});
 }
 
 function tabEntered(event) {
@@ -971,7 +1061,7 @@ function tabEntered(event) {
 	if (tab.getAttribute('name').indexOf('other_') < 0 
 		&& firstClass(tab, 'tab_group').getAttribute('class').indexOf('hidden') < 0 ) {
 		removeClass(firstClass(tab, 'tab_group_add'), 'hidden');
-		// removeClass(firstClass(tab, 'tab_group_ungroup'), 'hidden');
+		removeClass(firstClass(tab, 'tab_group_ungroup'), 'hidden');
 	}
 	if (tab.getAttribute('name').indexOf('other_') < 0 
 		 && firstClass(tab, 'tab_group').getAttribute('class').indexOf('hidden') >= 0
@@ -980,6 +1070,9 @@ function tabEntered(event) {
 		removeClass(firstClass(tab, 'tab_group_make'), 'hidden');
 		if (firstClass(tab, 'tab_hidden').getAttribute('value').indexOf('left') >= 0) {
 			removeClass(firstClass(tab, 'tab_group_left'), 'hidden');
+		}
+		if (firstClass(tab, 'tab_hidden').getAttribute('value').indexOf('right') >= 0) {
+			removeClass(firstClass(tab, 'tab_group_right'), 'hidden');
 		}
 	}
 
@@ -997,6 +1090,7 @@ function tabLeft(event) {
 	addClass(firstClass(tab, 'tab_group_ungroup'), 'hidden');
 	addClass(firstClass(tab, 'tab_group_make'), 'hidden');
 	addClass(firstClass(tab, 'tab_group_left'), 'hidden');
+	addClass(firstClass(tab, 'tab_group_right'), 'hidden');
 	addClass(firstClass(tab, 'tab_group_none'), 'hidden');
 }
 
@@ -1105,10 +1199,6 @@ function resetDarkness() {
 function activateTab(windowId, tabId) {
 	chrome.windows.update(windowId, {focused: true}, ignore => {});
 	chrome.tabs.update(tabId, {active: true}, ignore => {});
-}
-
-function closeTab(windowId, tabId) {
-	chrome.tabs.remove(tabId, ignore => {});
 }
 
 function newTabClicked(event) {

@@ -20,6 +20,9 @@
   "addThisTabToLeftGroup": {
     "message": "Add Tab In Left Tab Group"
   },
+  "addThisTabToRightGroup": {
+    "message": "Add Tab In Right Tab Group"
+  },
   "pinnedTabUnclickable": {
     "message": "Pinned Tab"
   },

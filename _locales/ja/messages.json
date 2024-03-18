@@ -20,6 +20,9 @@
   "addThisTabToLeftGroup": {
     "message": "左のタブグループにこのタブを追加"
   },
+  "addThisTabToRightGroup": {
+    "message": "右のタブグループにこのタブを追加"
+  },
   "pinnedTabUnclickable": {
     "message": "固定されたタブ"
   },
