@@ -1076,7 +1076,7 @@ function tabEntered(event) {
 		}
 	}
 
-	resetDarkness();
+	setTimeout(resetDarkness, 1000);
 }
 
 function tabLeft(event) {
@@ -1160,6 +1160,7 @@ function pinClicked(event) {
 		let originalIndex = aTab.index;
 		chrome.tabs.update(tabId, {pinned: pinnedAfter}, bTab => {
 			let movingTab = elementById('tab_' + windowId + '_' + tabId);
+			removeClass(movingTab, 'entered');
 			if (firstClass(movingTab, 'tab_cover').className.indexOf('selected') < 0) {
 				addClass(firstClass(movingTab, 'tab_cover'), 'darken');
 			}
