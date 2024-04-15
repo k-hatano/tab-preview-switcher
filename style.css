@@ -177,7 +177,7 @@ body.popup {
 }
 
 .tab_close.entered {
-	background: #0003;
+	background: #6666;
 }
 
 .tab_button {
@@ -225,7 +225,15 @@ body.popup {
 .tab_group_left.entered, 
 .tab_group_right.entered, 
 .tab_group_ungroup.entered {
-	background: #0003;
+	background: #6666;
+}
+
+.tab.grouped .tab_group_add.entered, 
+.tab.grouped .tab_group_make.entered, 
+.tab.grouped .tab_group_left.entered, 
+.tab.grouped .tab_group_right.entered, 
+.tab.grouped .tab_group_ungroup.entered {
+	background: #fff6;
 }
 
 .tab.selected .tab_close.entered, 
@@ -234,7 +242,7 @@ body.popup {
 .tab.selected .tab_group_left.entered, 
 .tab.selected .tab_group_right.entered, 
 .tab.selected .tab_group_ungroup.entered {
-	background: #fff3;
+	background: #fff6;
 }
 
 .tab_thumbnail {

@@ -296,6 +296,7 @@ function updateTabGroups(tabs) {
 				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : (nextHasGroup ? 'right' : ''));
 				chrome.tabGroups.get(tabs[i].groupId, tabGroup => {
 					if (tabGroup != undefined) {
+						addClass(tabElement, 'grouped');
 						firstClass(tabElement, 'tab_group_name').innerText = tabGroup.title;
 						firstClass(tabElement, 'tab_group').setAttribute('style', 'background: ' + tabGroup.color);
 						removeClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
@@ -308,6 +309,7 @@ function updateTabGroups(tabs) {
 						addClass(firstClass(tabElement, 'tab_group_none'), 'hidden');
 						firstClass(tabElement, 'tab_group').setAttribute('class', 'tab_group');
 					} else {
+						removeClass(tabElement, 'grouped');
 						firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : (nextHasGroup ? 'right' : ''));
 						addClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
 						addClass(firstClass(tabElement, 'tab_group'), 'hidden');
@@ -324,6 +326,7 @@ function updateTabGroups(tabs) {
 		} else {
 			let tabElement = elementById('tab_' + idsString);
 			if (tabElement != undefined) {
+				removeClass(tabElement, 'grouped');
 				firstClass(tabElement, 'tab_hidden').setAttribute('value', prevHasGroup ? 'left' : (nextHasGroup ? 'right' : ''));
 				addClass(firstClass(tabElement, 'tab_group_cover'), 'hidden');
 				addClass(firstClass(tabElement, 'tab_group'), 'hidden');
@@ -735,15 +738,13 @@ function addTabInThisGroupLeft(event) {
 
 function addTabInThisGroupClicked(event) {
 	let idSet = windowTabId(event.currentTarget.id, 'tab_group_add');
-	chrome.windows.update(idSet.windowId, {focused: true}, ignore => {
-		chrome.tabs.get(idSet.tabId, tab => {
-			chrome.tabs.create({active: true, index: tab.index + 1}, newTab => {
-				chrome.tabs.group({groupId: tab.groupId, tabIds: [newTab.id]}, newTab2 => {
-					chrome.tabs.update(newTab.id, {active: true}, ignore => {
-						chrome.tabs.query({}, tabs2 => {
-							updateTabGroups(tabs2);
-							updateTabPins(tabs2);
-						});
+	chrome.tabs.get(idSet.tabId, tab => {
+		chrome.tabs.create({active: false, index: tab.index + 1}, newTab => {
+			chrome.tabs.group({groupId: tab.groupId, tabIds: [newTab.id]}, newTab2 => {
+				chrome.tabs.update(newTab.id, {active: true}, ignore => {
+					chrome.tabs.query({}, tabs2 => {
+						updateTabGroups(tabs2);
+						updateTabPins(tabs2);
 					});
 				});
 			});
